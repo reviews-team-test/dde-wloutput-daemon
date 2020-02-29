@@ -1,0 +1,26 @@
+typedef _mode_info struct {
+	int32 width;
+	int32 height;
+	int32 refresh_rate;
+	int32 flags; // avaliable values: [current, preferred]
+}ModeInfo;
+
+typedef _output_info struct {
+	char *model;
+	char *manufacturer;
+	char *uuid;
+
+	int32 enabled;
+	int32 x;
+	int32 y;
+	int32 width;
+	int32 height;
+	int32 refresh_rate;
+	int32 transform;
+	int32 phys_width;
+	int32 phys_height;
+
+	double scale;
+
+	ModeInfo **modes;
+} OutputInfo;

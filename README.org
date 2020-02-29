@@ -1,0 +1,3 @@
+* DDE KWayland Output Daemon
+
+详见： [[./docs/dev_design.org][开发设计文档]]
