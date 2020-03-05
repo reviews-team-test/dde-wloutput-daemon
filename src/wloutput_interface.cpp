@@ -6,15 +6,21 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QDBusInterface>
 
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
-wloutput_interface::wloutput_interface(QObject *parent) : QObject (parent)
+wloutput_interface::wloutput_interface(QObject *parent)
+    : QDBusAbstractAdaptor(parent)
 {
-      m_pConnectThread = new ConnectionThread;
-      m_pThread = new QThread;
-      m_bConnected = false;
-      m_pManager = nullptr;
+    setAutoRelaySignals(true);
+
+    m_pConnectThread = new ConnectionThread;
+    m_pThread = new QThread;
+    m_bConnected = false;
+    m_pManager = nullptr;
+
+    StartWork();
 }
 
 wloutput_interface::~wloutput_interface()
@@ -225,6 +231,23 @@ QList<OutputInfo> wloutput_interface::json2OutputInfo(QString jsonString)
     return listOutputInfo;
 }
 
+void wloutput_interface::onMangementAnnounced(quint32 name, quint32 version) {
+    qDebug() << "onMangementAnnounced";
+
+    m_pManager = m_pRegisry->createOutputManagement(name, version);
+    if (!m_pManager || !m_pManager->isValid()) {
+        qDebug() << "create manager is nullptr or not valid!";
+        return;
+    }
+
+    m_pConf = m_pManager->createConfiguration();
+    if (!m_pManager || !m_pManager->isValid()) {
+        qDebug() << "create output configure is null or is not vaild";
+        return;
+    }
+
+
+}
 
 void wloutput_interface::StartWork()
 {
@@ -241,89 +264,24 @@ void wloutput_interface::StartWork()
         m_pRegisry->setup();
 
 
-        QObject::connect(m_pRegisry, &Registry::outputManagementAnnounced, [ & ](quint32 name, quint32 version) {
-            m_pManager = m_pRegisry->createOutputManagement(name, version);
-            if (!m_pManager || !m_pManager->isValid()) {
-                qDebug() << "create manager is nullptr or not valid!";
-                return;
-            }
+        QObject::connect(m_pRegisry, &Registry::outputManagementAnnounced, this, &wloutput_interface::onMangementAnnounced);
 
-            m_pConf = m_pManager->createConfiguration();
-            if (!m_pManager || !m_pManager->isValid()) {
-                qDebug() << "create output configure is null or is not vaild";
-                return;
-            }
+        QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
+        QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {
 
-            QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, [ & ](quint32 name, quint32 version) {
-                auto dev = m_pRegisry->createOutputDevice(name, version);
-                if (!dev || !dev->isValid())
-                {
-                    qDebug() << "get dev is null or not valid!";
-                    return;
-                }
-
-                QObject::connect(dev, &OutputDevice::changed, [=] {
-
-                    QString uuid = dev->uuid();
-                    if (uuid2OutputDevice.find(uuid) == uuid2OutputDevice.end()) {
-                        uuid2OutputDevice.insert(uuid, dev);
-                        qDebug() << "OutputDevice::Added uuid=" << uuid;
-                        OutputInfo stOutputInfo = GetOutputInfo(dev);
-                        QList<OutputInfo> listOutputInfos;
-                        listOutputInfos.push_back(stOutputInfo);
-                        QString json = OutputInfo2Json(listOutputInfos);
-                        //qDebug() << json;
-                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputAdded");
-                        QList<QVariant> arg;
-                        message.setArguments(arg);
-                        QDBusConnection::sessionBus().send(message);
-                    }
-                    else {
-                        qDebug() << "OutputDevice::changed";
-                        OutputInfo stOutputInfo = GetOutputInfo(dev);
-                        QList<OutputInfo> listOutputInfos;
-                        listOutputInfos.push_back(stOutputInfo);
-                        QString json = OutputInfo2Json(listOutputInfos);
-                        //qDebug() << json;
-                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputChanged");
-                        QList<QVariant> arg;
-                        message.setArguments(arg);
-                        QDBusConnection::sessionBus().send(message);
-                    }
-                });
-
-                QObject::connect(dev, &OutputDevice::removed, [dev]{
-                   qDebug() << "OutputDevice::removed";
-                   OutputInfo stOutputInfo = GetOutputInfo(dev);
-                   QList<OutputInfo> listOutputInfos;
-                   listOutputInfos.push_back(stOutputInfo);
-                   QString json = OutputInfo2Json(listOutputInfos);
-                   //qDebug() << json;
-                   QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
-                   QList<QVariant> arg;
-                   message.setArguments(arg);
-                   QDBusConnection::sessionBus().send(message);
-                });
-
-           });
-            QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {
-
-                qDebug() << "output device removed with name: " << name;
-//                OutputInfo stOutputInfo = GetOutputInfo(dev);
-//                QList<OutputInfo> listOutputInfos;
-//                listOutputInfos.push_back(stOutputInfo);
-//                QString json = OutputInfo2Json(listOutputInfos);
-//                //qDebug() << json;
-//                QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
-//                QList<QVariant> arg;
-//                message.setArguments(arg);
-//                QDBusConnection::sessionBus().send(message);
+            qDebug() << "output device removed with name: " << name;
+    //                OutputInfo stOutputInfo = GetOutputInfo(dev);
+    //                QList<OutputInfo> listOutputInfos;
+    //                listOutputInfos.push_back(stOutputInfo);
+    //                QString json = OutputInfo2Json(listOutputInfos);
+    //                //qDebug() << json;
+    //                QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
+    //                QList<QVariant> arg;
+    //                message.setArguments(arg);
+    //                QDBusConnection::sessionBus().send(message);
 
 
-           });
-
-
-        });
+       });
 
         do
         {
@@ -447,4 +405,68 @@ void wloutput_interface::Apply(QString outputs)
     else {
         qDebug() << "listOutputInfo is empty";
     }
+}
+
+void wloutput_interface::onDeviceChanged(OutputDevice *dev)
+{
+    qDebug() << "onDeviceChanged";
+    QString uuid = dev->uuid();
+    if (uuid2OutputDevice.find(uuid) == uuid2OutputDevice.end()) {
+        uuid2OutputDevice.insert(uuid, dev);
+        qDebug() << "OutputDevice::Added uuid=" << uuid;
+        OutputInfo stOutputInfo = GetOutputInfo(dev);
+        QList<OutputInfo> listOutputInfos;
+        listOutputInfos.push_back(stOutputInfo);
+        QString json = OutputInfo2Json(listOutputInfos);
+//            qDebug() << json;
+        Q_EMIT OutputAdded(json);
+//                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputAdded");
+//                        QList<QVariant> arg;
+//                        message.setArguments(arg);
+//                        QDBusConnection::sessionBus().send(message);
+    }
+    else {
+        qDebug() << "OutputDevice::changed";
+        OutputInfo stOutputInfo = GetOutputInfo(dev);
+        QList<OutputInfo> listOutputInfos;
+        listOutputInfos.push_back(stOutputInfo);
+        QString json = OutputInfo2Json(listOutputInfos);
+        //qDebug() << json;
+        Q_EMIT OutputChanged(json);
+//                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputChanged");
+//                        QList<QVariant> arg;
+//                        message.setArguments(arg);
+//                        QDBusConnection::sessionBus().send(message);
+    }
+
+}
+
+void wloutput_interface::onDeviceRemove(quint32 name, quint32 version) {
+    qDebug() << "onDeviceRemove";
+
+    auto dev = m_pRegisry->createOutputDevice(name, version);
+    if (!dev || !dev->isValid())
+    {
+        qDebug() << "get dev is null or not valid!";
+        return;
+    }
+
+    QObject::connect(dev, &OutputDevice::changed, this, [=]{
+        this->onDeviceChanged(dev);
+    });
+
+    QObject::connect(dev, &OutputDevice::removed, this, [dev, this]{
+       qDebug() << "OutputDevice::removed";
+       OutputInfo stOutputInfo = GetOutputInfo(dev);
+       QList<OutputInfo> listOutputInfos;
+       listOutputInfos.push_back(stOutputInfo);
+       QString json = OutputInfo2Json(listOutputInfos);
+       //qDebug() << json;
+       Q_EMIT OutputRemoved(json);
+//                   QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
+//                   QList<QVariant> arg;
+//                   message.setArguments(arg);
+//                   QDBusConnection::sessionBus().send(message);
+    });
+
 }
