@@ -14,13 +14,20 @@ int main(int argc, char *argv[])
     // app version
     QCoreApplication::setApplicationVersion(VERSION); // app version
 
-    wloutput_interface object;
+    wloutput_interface object(&a);
+    Q_UNUSED(object);
 
-    if(!object.InitDBus())
-    {
-        qDebug() << "InitDBus failed!";
-        exit(-1);
+    QDBusConnection conn = QDBusConnection::sessionBus();
+    if (!conn.registerService(SERVER) ||
+            !conn.registerObject(PATH, &a)) {
+        qDebug() << "dbus service already registered!";
     }
+
+//    if(!object.InitDBus())
+//    {
+//        qDebug() << "InitDBus failed!";
+//        exit(-1);
+//    }
 
     object.StartWork();
 

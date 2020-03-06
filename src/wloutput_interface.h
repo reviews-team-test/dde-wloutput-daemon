@@ -53,10 +53,11 @@ typedef  struct _output_info
 }OutputInfo;
 
 
-class wloutput_interface : public QObject
+class wloutput_interface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.Output")
+
 public:
     explicit wloutput_interface(QObject *parent=nullptr);
     virtual ~wloutput_interface();
@@ -65,14 +66,21 @@ public:
     static OutputInfo GetOutputInfo(const OutputDevice* dev);
     static QString OutputInfo2Json(QList<OutputInfo>& listOutputInfos);
     static QList<OutputInfo> json2OutputInfo(QString jsonString);
+
 signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
-public slots:
+public Q_SLOTS:
     QString ListOutput();
     QString GetOutput(QString uuid);
     void Apply(QString outputs);
+
+private:
+    void onDeviceChanged(OutputDevice *dev);
+    void onDeviceRemove(quint32 name, quint32 version) ;
+    void onMangementAnnounced(quint32 name, quint32 version);
+
 private:
     //QTimer m_Timer;
 
