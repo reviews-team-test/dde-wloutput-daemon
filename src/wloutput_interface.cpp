@@ -57,6 +57,8 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
     stOutputInfo.manufacturer = dev->manufacturer();
     stOutputInfo.uuid = dev->uuid();
 
+
+    qDebug()<<"[Dev Get]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     switch(dev->enabled())
     {
         case OutputDevice::Enablement::Disabled:
@@ -68,10 +70,11 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
 
     }
 
-    stOutputInfo.x = dev->globalPosition().x();
-    stOutputInfo.y = dev->globalPosition().y();
-    stOutputInfo.width = dev->pixelSize().width();
-    stOutputInfo.height = dev->pixelSize().height();
+
+    stOutputInfo.x = dev->geometry().x();
+    stOutputInfo.y = dev->geometry().y();
+    stOutputInfo.width = dev->geometry().width();
+    stOutputInfo.height = dev->geometry().height();
     stOutputInfo.refresh_rate = dev->refreshRate();
 
     switch (dev->transform())
@@ -132,6 +135,9 @@ QString wloutput_interface::OutputInfo2Json(QList<OutputInfo>& listOutputInfos)
     {
         QJsonObject jsonOutputInfo;
 
+        qDebug()<<"[To JSON]: "<<oIterOutputInfo->model<<oIterOutputInfo->manufacturer<<oIterOutputInfo->uuid<<oIterOutputInfo->enabled
+               <<oIterOutputInfo->x<<oIterOutputInfo->y<<oIterOutputInfo->width<<oIterOutputInfo->height<<oIterOutputInfo->refresh_rate
+              <<oIterOutputInfo->transform;
         jsonOutputInfo.insert("model", oIterOutputInfo->model);
         jsonOutputInfo.insert("manufacturer", oIterOutputInfo->manufacturer);
         jsonOutputInfo.insert("uuid", oIterOutputInfo->uuid);
@@ -410,6 +416,7 @@ void wloutput_interface::Apply(QString outputs)
 void wloutput_interface::onDeviceChanged(OutputDevice *dev)
 {
     qDebug() << "onDeviceChanged";
+    qDebug()<<"[Changed]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     QString uuid = dev->uuid();
     if (uuid2OutputDevice.find(uuid) == uuid2OutputDevice.end()) {
         uuid2OutputDevice.insert(uuid, dev);
