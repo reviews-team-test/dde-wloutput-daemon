@@ -11,6 +11,7 @@
 
 #include <event_queue.h>
 #include <plasmawindowmanagement.h>
+#include <idle.h>
 
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
@@ -254,7 +255,7 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
     }
 
     connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this](PlasmaWindow* plasmaWindow) {
-        qDebug() << "on plasma Window created...";
+        qDebug() << "on plasma Window created, title:" << plasmaWindow->title();
         connect(plasmaWindow, &PlasmaWindow::activeChanged, this, [plasmaWindow] {
             if(!plasmaWindow || !plasmaWindow->isValid()) {
                 return;
@@ -280,6 +281,17 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
 
 }
 
+void wloutput_interface::addIdleTimeOut()
+{
+    auto idleTimeout = m_idle->getTimeout(60000, m_seat, this);
+    connect(idleTimeout, &IdleTimeout::idle, this, []{
+        qDebug() << "idle on!";
+    });
+    connect(idleTimeout, &IdleTimeout::resumeFromIdle, this, []{
+        qDebug() << "idle off!";
+    });
+}
+
 void wloutput_interface::StartWork()
 {
     QObject::connect(m_pConnectThread, &ConnectionThread::connected, this, [ this ] {
@@ -291,6 +303,20 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
         QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
         QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
+        connect(m_pRegisry, &Registry::seatAnnounced, this,
+            [this](quint32 name, quint32 version) {
+                m_seat = m_pRegisry->createSeat(name, version, this);
+        });
+        connect(m_pRegisry, &Registry::idleAnnounced, this, [this](quint32 name, quint32 version) {
+            m_idle = m_pRegisry->createIdle(name, version, this);
+        });
+        connect(m_pRegisry, &Registry::interfacesAnnounced, this,[this] {
+            Q_ASSERT(m_idle);
+            Q_ASSERT(m_seat);
+            Q_ASSERT(m_pWindowManager);
+            Q_ASSERT(m_pManager);
+            addIdleTimeOut();
+        });
 
         m_pRegisry->setEventQueue(m_eventQueue);
         m_pRegisry->create(m_pConnectThread);

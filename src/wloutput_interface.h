@@ -85,6 +85,7 @@ private:
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
+    void addIdleTimeOut();
 
 private:
     //QTimer m_Timer;
@@ -96,7 +97,8 @@ private:
     EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
     PlasmaWindowManagement *m_pWindowManager{nullptr};
-    PlasmaWindowModel * m_pWindowModel{nullptr};
+    Idle *m_idle{nullptr};
+    Seat *m_seat{nullptr};
 };
 
 #endif // WLOUTPUT_INTERFACE_H
