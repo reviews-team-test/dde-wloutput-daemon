@@ -16,7 +16,11 @@
 #include <QList>
 #include <outputconfiguration.h>
 
-
+namespace KWayland {
+namespace  Client{
+    class PlasmaWindowModel;
+}
+}
 
 using namespace KWayland::Client;
 
@@ -80,18 +84,19 @@ private:
     void onDeviceChanged(OutputDevice *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
+    void createPlasmaWindowManagement(quint32 name, quint32 version);
 
 private:
     //QTimer m_Timer;
-
-
-    ConnectionThread *m_pConnectThread;
-    QThread *m_pThread;
-    Registry *m_pRegisry;
-    OutputManagement *m_pManager;
-    OutputConfiguration *m_pConf;
+    ConnectionThread *m_pConnectThread{nullptr};
+    QThread *m_pThread{nullptr};
+    Registry *m_pRegisry{nullptr};
+    OutputManagement *m_pManager{nullptr};
+    OutputConfiguration *m_pConf{nullptr};
+    EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
-
+    PlasmaWindowManagement *m_pWindowManager{nullptr};
+    PlasmaWindowModel * m_pWindowModel{nullptr};
 };
 
 #endif // WLOUTPUT_INTERFACE_H

@@ -11,6 +11,7 @@ find_package(KF5Wayland REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Qt5 COMPONENTS
     Core
+    Gui
     DBus
 REQUIRED)
 

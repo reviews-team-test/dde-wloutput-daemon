@@ -1,4 +1,5 @@
 #include "wloutput_interface.h"
+#include "plasmawindowmanagement.h"
 #include <QDebug>
 #include <QtDBus/QDBusMessage>
 #include <outputdevice.h>
@@ -8,6 +9,9 @@
 #include <QJsonParseError>
 #include <QDBusInterface>
 
+#include <event_queue.h>
+#include <plasmawindowmanagement.h>
+
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
 wloutput_interface::wloutput_interface(QObject *parent)
@@ -16,39 +20,27 @@ wloutput_interface::wloutput_interface(QObject *parent)
     setAutoRelaySignals(true);
 
     m_pConnectThread = new ConnectionThread;
-    m_pThread = new QThread;
+    m_pThread = new QThread(this);
     m_bConnected = false;
     m_pManager = nullptr;
-
-    StartWork();
 }
 
 wloutput_interface::~wloutput_interface()
 {
-    m_bConnected = false;
-}
+    m_pThread->quit();
+    m_pThread->wait();
 
-bool wloutput_interface::InitDBus()
-{
-
-    QDBusConnection connection = QDBusConnection::sessionBus();
-    if(!connection.registerService(SERVER))
-    {
-        qDebug() << "error:" << connection.lastError().message();
-        return false;
+    if (m_pConnectThread) {
+        m_pConnectThread->deleteLater();
     }
 
-    if(!connection.registerObject(PATH, this,
-                                   QDBusConnection :: ExportAllSlots | QDBusConnection :: ExportAllSignals))
-    {
-        qDebug() << "error:" << connection.lastError().message();
-        return false;
-    }
-    return true;
-
+    if (m_pRegisry)
+        m_pRegisry->deleteLater();
+    if (m_pConf)
+        m_pRegisry->deleteLater();
+    if (m_pManager)
+        m_pManager->deleteLater();
 }
-
-
 
 OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
 {
@@ -120,9 +112,6 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
     }
     return stOutputInfo;
 }
-
-
-
 
 QString wloutput_interface::OutputInfo2Json(QList<OutputInfo>& listOutputInfos)
 {
@@ -240,14 +229,14 @@ QList<OutputInfo> wloutput_interface::json2OutputInfo(QString jsonString)
 void wloutput_interface::onMangementAnnounced(quint32 name, quint32 version) {
     qDebug() << "onMangementAnnounced";
 
-    m_pManager = m_pRegisry->createOutputManagement(name, version);
+    m_pManager = m_pRegisry->createOutputManagement(name, version, this);
     if (!m_pManager || !m_pManager->isValid()) {
         qDebug() << "create manager is nullptr or not valid!";
         return;
     }
 
     m_pConf = m_pManager->createConfiguration();
-    if (!m_pManager || !m_pManager->isValid()) {
+    if (!m_pConf || !m_pConf->isValid()) {
         qDebug() << "create output configure is null or is not vaild";
         return;
     }
@@ -255,59 +244,57 @@ void wloutput_interface::onMangementAnnounced(quint32 name, quint32 version) {
 
 }
 
+void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 version)
+{
+    qDebug() << "on plasmaWindowManagerment Ann...";
+    m_pWindowManager = m_pRegisry->createPlasmaWindowManagement(name, version, this);
+    if (!m_pWindowManager || !m_pWindowManager->isValid()) {
+        qDebug() << " create window manager error or not vaild!";
+        return;
+    }
+
+    connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this](PlasmaWindow* plasmaWindow) {
+        qDebug() << "on plasma Window created...";
+        connect(plasmaWindow, &PlasmaWindow::activeChanged, this, [plasmaWindow] {
+            if(!plasmaWindow || !plasmaWindow->isValid()) {
+                return;
+            }
+            qDebug() << plasmaWindow->isActive();
+        });
+        connect(plasmaWindow, &PlasmaWindow::minimizeableChanged, this, [plasmaWindow] {
+            if(!plasmaWindow || !plasmaWindow->isValid()) {
+                return;
+            }
+            qDebug() << plasmaWindow->isMinimizeable();
+        });
+        connect(plasmaWindow, &PlasmaWindow::titleChanged, this,    [plasmaWindow] {
+            if(!plasmaWindow || !plasmaWindow->isValid()) {
+                return;
+            }
+            qDebug() << plasmaWindow->title();
+        });
+    });
+
+//    qDebug() << m_pWindowManager->windows();
+//    m_pWindowManager->setShowingDesktop(true);
+
+}
+
 void wloutput_interface::StartWork()
 {
-    m_pConnectThread->moveToThread(m_pThread);
-    m_pThread->start();
-    m_pConnectThread->initConnection();
-
-
-    QObject::connect(m_pConnectThread, &ConnectionThread::connected, [ & ] {
-
-        m_bConnected = true;
-        m_pRegisry = new Registry;
-        m_pRegisry->create(m_pConnectThread);
-        m_pRegisry->setup();
-
+    QObject::connect(m_pConnectThread, &ConnectionThread::connected, this, [ this ] {
+        m_eventQueue = new EventQueue(this);
+        m_eventQueue->setup(m_pConnectThread);
+        m_pRegisry = new Registry(this);
 
         QObject::connect(m_pRegisry, &Registry::outputManagementAnnounced, this, &wloutput_interface::onMangementAnnounced);
-
+        QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
         QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
-        QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {
+        QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
 
-            qDebug() << "output device removed with name: " << name;
-    //                OutputInfo stOutputInfo = GetOutputInfo(dev);
-    //                QList<OutputInfo> listOutputInfos;
-    //                listOutputInfos.push_back(stOutputInfo);
-    //                QString json = OutputInfo2Json(listOutputInfos);
-    //                //qDebug() << json;
-    //                QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
-    //                QList<QVariant> arg;
-    //                message.setArguments(arg);
-    //                QDBusConnection::sessionBus().send(message);
-
-
-       });
-
-        do
-        {
-            m_pConnectThread->roundtrip();
-
-        }while (m_bConnected);
-
-        if (m_pConnectThread) {
-                m_pConnectThread->deleteLater();
-                m_pThread->quit();
-                m_pThread->wait();
-        }
-
-        if (m_pRegisry)
-            m_pRegisry->deleteLater();
-        if (m_pConf)
-            m_pRegisry->deleteLater();
-        if (m_pManager)
-            m_pManager->deleteLater();
-
+        m_pRegisry->setEventQueue(m_eventQueue);
+        m_pRegisry->create(m_pConnectThread);
+        m_pRegisry->setup();
     });
 
     QObject::connect(m_pConnectThread, &ConnectionThread::failed, [ & ] {
@@ -328,6 +315,9 @@ void wloutput_interface::StartWork()
 
     });
 
+    m_pConnectThread->moveToThread(m_pThread);
+    m_pThread->start();
+    m_pConnectThread->initConnection();
 }
 
 
