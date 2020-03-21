@@ -10,11 +10,12 @@
 
 #include <outputdevice.h>
 #include <registry.h>
-#include <registry.h>
 #include <connection_thread.h>
 #include <outputmanagement.h>
 #include <QList>
 #include <outputconfiguration.h>
+
+#include "wlidle_interface.h"
 
 namespace KWayland {
 namespace  Client{
@@ -67,6 +68,7 @@ public:
     virtual ~wloutput_interface();
     bool InitDBus();
     void StartWork();
+    QDBusAbstractAdaptor* idleObject() { return m_wlIdleInterface; }
     static OutputInfo GetOutputInfo(const OutputDevice* dev);
     static QString OutputInfo2Json(QList<OutputInfo>& listOutputInfos);
     static QList<OutputInfo> json2OutputInfo(QString jsonString);
@@ -75,6 +77,7 @@ signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
+
 public Q_SLOTS:
     QString ListOutput();
     QString GetOutput(QString uuid);
@@ -85,7 +88,6 @@ private:
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
-    void addIdleTimeOut();
 
 private:
     //QTimer m_Timer;
@@ -97,6 +99,7 @@ private:
     EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
     PlasmaWindowManagement *m_pWindowManager{nullptr};
+    WlIdleInterface *m_wlIdleInterface{nullptr};
     Idle *m_idle{nullptr};
     Seat *m_seat{nullptr};
 };

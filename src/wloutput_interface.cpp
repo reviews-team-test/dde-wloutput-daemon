@@ -20,6 +20,7 @@ wloutput_interface::wloutput_interface(QObject *parent)
 {
     setAutoRelaySignals(true);
 
+    m_wlIdleInterface = new WlIdleInterface(parent);
     m_pConnectThread = new ConnectionThread;
     m_pThread = new QThread(this);
     m_bConnected = false;
@@ -33,6 +34,9 @@ wloutput_interface::~wloutput_interface()
 
     if (m_pConnectThread) {
         m_pConnectThread->deleteLater();
+    }
+    if(m_wlIdleInterface) {
+        m_wlIdleInterface->deleteLater();
     }
 
     if (m_pRegisry)
@@ -241,8 +245,6 @@ void wloutput_interface::onMangementAnnounced(quint32 name, quint32 version) {
         qDebug() << "create output configure is null or is not vaild";
         return;
     }
-
-
 }
 
 void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 version)
@@ -281,17 +283,6 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
 
 }
 
-void wloutput_interface::addIdleTimeOut()
-{
-    auto idleTimeout = m_idle->getTimeout(60000, m_seat, this);
-    connect(idleTimeout, &IdleTimeout::idle, this, []{
-        qDebug() << "idle on!";
-    });
-    connect(idleTimeout, &IdleTimeout::resumeFromIdle, this, []{
-        qDebug() << "idle off!";
-    });
-}
-
 void wloutput_interface::StartWork()
 {
     QObject::connect(m_pConnectThread, &ConnectionThread::connected, this, [ this ] {
@@ -303,19 +294,16 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
         QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
         QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
+
         connect(m_pRegisry, &Registry::seatAnnounced, this,
-            [this](quint32 name, quint32 version) {
+            [ = ](quint32 name, quint32 version) {
                 m_seat = m_pRegisry->createSeat(name, version, this);
         });
-        connect(m_pRegisry, &Registry::idleAnnounced, this, [this](quint32 name, quint32 version) {
+        connect(m_pRegisry, &Registry::idleAnnounced, this, [ = ](quint32 name, quint32 version) {
             m_idle = m_pRegisry->createIdle(name, version, this);
         });
-        connect(m_pRegisry, &Registry::interfacesAnnounced, this,[this] {
-            Q_ASSERT(m_idle);
-            Q_ASSERT(m_seat);
-            Q_ASSERT(m_pWindowManager);
-            Q_ASSERT(m_pManager);
-            addIdleTimeOut();
+        connect(m_pRegisry, &Registry::interfacesAnnounced, this, [ this ] {
+            if(m_wlIdleInterface != nullptr) m_wlIdleInterface->addIdleTimeOut(m_idle, m_seat);
         });
 
         m_pRegisry->setEventQueue(m_eventQueue);
