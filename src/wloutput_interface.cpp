@@ -1,5 +1,4 @@
 #include "wloutput_interface.h"
-#include "plasmawindowmanagement.h"
 #include <QDebug>
 #include <QtDBus/QDBusMessage>
 #include <outputdevice.h>
@@ -11,7 +10,7 @@
 
 #include <event_queue.h>
 #include <plasmawindowmanagement.h>
-#include <idle.h>
+#include "plasma_window_interface.h"
 
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
@@ -257,30 +256,21 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
     }
 
     connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this](PlasmaWindow* plasmaWindow) {
-        qDebug() << "on plasma Window created, title:" << plasmaWindow->title();
-        connect(plasmaWindow, &PlasmaWindow::activeChanged, this, [plasmaWindow] {
-            if(!plasmaWindow || !plasmaWindow->isValid()) {
-                return;
-            }
-            qDebug() << plasmaWindow->isActive();
-        });
-        connect(plasmaWindow, &PlasmaWindow::minimizeableChanged, this, [plasmaWindow] {
-            if(!plasmaWindow || !plasmaWindow->isValid()) {
-                return;
-            }
-            qDebug() << plasmaWindow->isMinimizeable();
-        });
-        connect(plasmaWindow, &PlasmaWindow::titleChanged, this,    [plasmaWindow] {
-            if(!plasmaWindow || !plasmaWindow->isValid()) {
-                return;
-            }
-            qDebug() << plasmaWindow->title();
+        DPlasmaWindow* plasma_window = new DPlasmaWindow(plasmaWindow);
+        PlasmaWindowInterface *plasma_window_interface = new PlasmaWindowInterface(plasma_window);
+
+        QString dbus_path = WINDOW_PATH + "_" + QString::number(plasmaWindow->internalId());
+        if ( !QDBusConnection::sessionBus().registerObject(dbus_path, plasma_window)) {
+            qDebug() << "register wayland plasma window interface failed " << plasmaWindow->title();
+        }
+
+        connect(plasmaWindow, &PlasmaWindow::unmapped, this, [plasma_window_interface](){
+            if(plasma_window_interface != nullptr) plasma_window_interface->deleteLater();
         });
     });
 
 //    qDebug() << m_pWindowManager->windows();
 //    m_pWindowManager->setShowingDesktop(true);
-
 }
 
 void wloutput_interface::StartWork()
