@@ -11,6 +11,7 @@
 #include <event_queue.h>
 #include <plasmawindowmanagement.h>
 #include "plasma_window_interface.h"
+#include "window_manager_interface.h"
 
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
@@ -250,12 +251,17 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
 {
     qDebug() << "on plasmaWindowManagerment Ann...";
     m_pWindowManager = m_pRegisry->createPlasmaWindowManagement(name, version, this);
+    PlasmaWindowManagerInterface *wmanager_inter = new PlasmaWindowManagerInterface(m_pWindowManager);
+    if(!QDBusConnection::sessionBus().registerObject(MANAGER_PATH, m_pWindowManager)) {
+        qDebug() << "register wayland plasma window manager interface failed";
+    }
+
     if (!m_pWindowManager || !m_pWindowManager->isValid()) {
         qDebug() << " create window manager error or not vaild!";
         return;
     }
 
-    connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this](PlasmaWindow* plasmaWindow) {
+    connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this, wmanager_inter](PlasmaWindow* plasmaWindow) {
         DPlasmaWindow* plasma_window = new DPlasmaWindow(plasmaWindow);
         PlasmaWindowInterface *plasma_window_interface = new PlasmaWindowInterface(plasma_window);
 
@@ -263,8 +269,10 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
         if ( !QDBusConnection::sessionBus().registerObject(dbus_path, plasma_window)) {
             qDebug() << "register wayland plasma window interface failed " << plasmaWindow->title();
         }
+        wmanager_inter->windowAdd(dbus_path);
 
-        connect(plasmaWindow, &PlasmaWindow::unmapped, this, [plasma_window_interface](){
+        connect(plasmaWindow, &PlasmaWindow::unmapped, this, [wmanager_inter, dbus_path, plasma_window_interface](){
+            wmanager_inter->windowRemove(dbus_path);
             if(plasma_window_interface != nullptr) plasma_window_interface->deleteLater();
         });
     });
