@@ -13,8 +13,8 @@ PlasmaWindowManagerInterface::PlasmaWindowManagerInterface(PlasmaWindowManagemen
 
 PlasmaWindowManagerInterface::~PlasmaWindowManagerInterface()
 {
-    if(m_plasmaWindowManager != nullptr)
-        m_plasmaWindowManager->deleteLater();
+//    if(m_plasmaWindowManager != nullptr)
+//        m_plasmaWindowManager->deleteLater();
 }
 
 void PlasmaWindowManagerInterface::InitConnect()
@@ -78,7 +78,7 @@ QList<QVariant> PlasmaWindowManagerInterface::Windows() const
 
 quint32 PlasmaWindowManagerInterface::ActiveWindow() const
 {
-    if(m_plasmaWindowManager != nullptr) {
+    if(m_plasmaWindowManager != nullptr && m_plasmaWindowManager->activeWindow()) {
         return m_plasmaWindowManager->activeWindow()->internalId();
     }
 

@@ -13,8 +13,8 @@ PlasmaWindowInterface::PlasmaWindowInterface(DPlasmaWindow* plasma_window)
 
 PlasmaWindowInterface::~PlasmaWindowInterface()
 {
-    if(m_plasmaWindow != nullptr)
-        m_plasmaWindow->deleteLater();
+//    if(m_plasmaWindow != nullptr)
+//        m_plasmaWindow->deleteLater();
 }
 
 void PlasmaWindowInterface::InitConnect()
