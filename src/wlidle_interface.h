@@ -8,6 +8,7 @@
 #include <QtDBus/QDBusConnection>
 
 #include <registry.h>
+#include <idle.h>
 
 using namespace KWayland::Client;
 
@@ -20,16 +21,20 @@ public:
     explicit WlIdleInterface(QObject *parent=nullptr);
     virtual ~WlIdleInterface();
     bool InitDBus();
-    void addIdleTimeOut(Idle* idle, Seat* seat);
+//    void addIdleTimeOut(Idle* idle, Seat* seat);
 
 public Q_SLOTS:
     void SetIdleTimeout(quint32 time);
+    void setData( Seat* seat, Idle *idle);
 
 signals:
     void IdleTimeout(bool idle);
 
 private:
-    quint32 m_idleTimeout = 60000;
+    quint32 m_timeout{0};
+    class IdleTimeout *m_idleTimeout{nullptr};
+    Seat* m_seat;
+    Idle *m_idle;
 };
 
 #endif // WLOUTPUT_INTERFACE_H

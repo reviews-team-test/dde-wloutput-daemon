@@ -301,7 +301,8 @@ void wloutput_interface::StartWork()
             m_idle = m_pRegisry->createIdle(name, version, this);
         });
         connect(m_pRegisry, &Registry::interfacesAnnounced, this, [ this ] {
-            if(m_wlIdleInterface != nullptr) m_wlIdleInterface->addIdleTimeOut(m_idle, m_seat);
+            if(m_wlIdleInterface != nullptr) m_wlIdleInterface->setData(m_seat, m_idle);
+
         });
 
         m_pRegisry->setEventQueue(m_eventQueue);

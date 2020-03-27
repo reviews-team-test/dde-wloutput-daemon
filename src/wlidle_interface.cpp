@@ -16,20 +16,30 @@ WlIdleInterface::~WlIdleInterface()
 
 void WlIdleInterface::SetIdleTimeout(quint32 time)
 {
-    if(m_idleTimeout != time) {
-        m_idleTimeout = time;
+    if (time == 0)
+        return;
+
+    if(m_timeout != time) {
+        m_timeout = time;
+        m_idleTimeout->deleteLater();
+        m_idleTimeout = m_idle->getTimeout(m_timeout, m_seat, this);
+        connect(m_idleTimeout, &IdleTimeout::idle, this, [ = ]{
+            qDebug() << "idle timeout on";
+            IdleTimeout(true);
+        });
+        connect(m_idleTimeout, &IdleTimeout::resumeFromIdle, this, [ = ]{
+            qDebug() << "idle timeout off";
+            IdleTimeout(false);
+        });
     }
 }
 
-void WlIdleInterface::addIdleTimeOut(Idle* idle, Seat* seat)
-{
-    auto idleTimeout = idle->getTimeout(m_idleTimeout, seat, this);
-    connect(idleTimeout, &IdleTimeout::idle, this, [ = ]{
-        qDebug() << "idle timeout on";
-        IdleTimeout(true);
-    });
-    connect(idleTimeout, &IdleTimeout::resumeFromIdle, this, [ = ]{
-        qDebug() << "idle timeout off";
-        IdleTimeout(false);
-    });
+//void WlIdleInterface::addIdleTimeOut(Idle* idle, Seat* seat)
+//{
+//    auto idleTimeout = idle->getTimeout(m_idleTimeout, seat, this);
+//}
+
+void WlIdleInterface::setData( Seat* seat, Idle *idle) {
+    m_seat = seat;
+    m_idle = idle;
 }
