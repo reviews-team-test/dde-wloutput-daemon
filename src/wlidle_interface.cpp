@@ -43,3 +43,9 @@ void WlIdleInterface::setData( Seat* seat, Idle *idle) {
     m_seat = seat;
     m_idle = idle;
 }
+
+void WlIdleInterface::simulateUserActivity()
+{
+    if (m_idleTimeout)
+        m_idleTimeout->simulateUserActivity();
+}

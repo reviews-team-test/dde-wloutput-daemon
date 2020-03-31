@@ -26,6 +26,7 @@ public:
 public Q_SLOTS:
     void SetIdleTimeout(quint32 time);
     void setData( Seat* seat, Idle *idle);
+    void simulateUserActivity ();
 
 signals:
     void IdleTimeout(bool idle);
