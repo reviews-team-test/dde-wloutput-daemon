@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
-#include "dplasma_window.h"
 
 #include <plasmawindowmanagement.h>
 
@@ -20,7 +19,7 @@ class PlasmaWindowInterface : public QDBusAbstractAdaptor
     Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.PlasmaWindow")
 
 public:
-    explicit PlasmaWindowInterface(DPlasmaWindow* plasma_window);
+    explicit PlasmaWindowInterface(PlasmaWindow* plasma_window);
     virtual ~PlasmaWindowInterface();
     bool InitDBus();
     void InitConnect();
@@ -103,7 +102,7 @@ public Q_SLOTS:
     quint32 VirtualDesktop () const;
 
 private:
-    DPlasmaWindow* m_plasmaWindow{nullptr};
+    PlasmaWindow* m_plasmaWindow{nullptr};
 };
 
 #endif // PLASMA_WINDOW_INTERFACE_H

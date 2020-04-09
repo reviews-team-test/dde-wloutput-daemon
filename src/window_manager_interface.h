@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
-#include "dplasma_window.h"
 
 #include <plasmawindowmanagement.h>
 

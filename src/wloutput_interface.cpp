@@ -262,11 +262,10 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
     }
 
     connect(m_pWindowManager, &PlasmaWindowManagement::windowCreated, this, [this, wmanager_inter](PlasmaWindow* plasmaWindow) {
-        DPlasmaWindow* plasma_window = new DPlasmaWindow(plasmaWindow);
-        PlasmaWindowInterface *plasma_window_interface = new PlasmaWindowInterface(plasma_window);
+        PlasmaWindowInterface *plasma_window_interface = new PlasmaWindowInterface(plasmaWindow);
 
         QString dbus_path = WINDOW_PATH + "_" + QString::number(plasmaWindow->internalId());
-        if ( !QDBusConnection::sessionBus().registerObject(dbus_path, plasma_window)) {
+        if ( !QDBusConnection::sessionBus().registerObject(dbus_path, plasmaWindow)) {
             qDebug() << "register wayland plasma window interface failed " << plasmaWindow->title();
         }
         wmanager_inter->windowAdd(dbus_path);

@@ -2,7 +2,7 @@
 #include <QtDBus/QDBusMessage>
 #include <QDBusInterface>
 
-PlasmaWindowInterface::PlasmaWindowInterface(DPlasmaWindow* plasma_window)
+PlasmaWindowInterface::PlasmaWindowInterface(PlasmaWindow* plasma_window)
     : QDBusAbstractAdaptor(plasma_window)
     , m_plasmaWindow(plasma_window)
 {
@@ -13,265 +13,409 @@ PlasmaWindowInterface::PlasmaWindowInterface(DPlasmaWindow* plasma_window)
 
 PlasmaWindowInterface::~PlasmaWindowInterface()
 {
-//    if(m_plasmaWindow != nullptr)
-//        m_plasmaWindow->deleteLater();
 }
 
 void PlasmaWindowInterface::InitConnect()
 {
-    qDebug() << "on plasma Window created, title:" << m_plasmaWindow->Title();
+    qDebug() << "on plasma Window created, title:" << m_plasmaWindow->title();
 
-    connect(m_plasmaWindow, &DPlasmaWindow::ActiveChanged, this, &PlasmaWindowInterface::ActiveChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::AppIdChanged, this, &PlasmaWindowInterface::AppIdChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::CloseableChanged, this, &PlasmaWindowInterface::CloseableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::DemandsAttentionChanged, this, &PlasmaWindowInterface::DemandsAttentionChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::FullscreenableChanged, this, &PlasmaWindowInterface::FullscreenableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::FullscreenChanged, this, &PlasmaWindowInterface::FullscreenChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::GeometryChanged, this, &PlasmaWindowInterface::GeometryChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::IconChanged, this, &PlasmaWindowInterface::IconChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::KeepAboveChanged, this, &PlasmaWindowInterface::KeepAboveChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::KeepBelowChanged, this, &PlasmaWindowInterface::KeepBelowChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::MaximizeableChanged, this, &PlasmaWindowInterface::MaximizeableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::MaximizedChanged, this, &PlasmaWindowInterface::MaximizedChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::MinimizeableChanged, this, &PlasmaWindowInterface::MinimizeableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::MinimizedChanged, this, &PlasmaWindowInterface::MinimizedChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::MovableChanged, this, &PlasmaWindowInterface::MovableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::OnAllDesktopsChanged, this, &PlasmaWindowInterface::OnAllDesktopsChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::ParentWindowChanged, this, &PlasmaWindowInterface::ParentWindowChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::PlasmaVirtualDesktopEntered, this, &PlasmaWindowInterface::PlasmaVirtualDesktopEntered);
-    connect(m_plasmaWindow, &DPlasmaWindow::PlasmaVirtualDesktopLeft, this, &PlasmaWindowInterface::PlasmaVirtualDesktopLeft);
-    connect(m_plasmaWindow, &DPlasmaWindow::ResizableChanged, this, &PlasmaWindowInterface::ResizableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::ShadeableChanged, this, &PlasmaWindowInterface::ShadeableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::ShadedChanged, this, &PlasmaWindowInterface::ShadedChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::SkipSwitcherChanged, this, &PlasmaWindowInterface::SkipSwitcherChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::SkipTaskbarChanged, this, &PlasmaWindowInterface::SkipTaskbarChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::TitleChanged, this, &PlasmaWindowInterface::TitleChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::Unmapped, this, &PlasmaWindowInterface::Unmapped);
-    connect(m_plasmaWindow, &DPlasmaWindow::VirtualDesktopChangeableChanged, this, &PlasmaWindowInterface::VirtualDesktopChangeableChanged);
-    connect(m_plasmaWindow, &DPlasmaWindow::VirtualDesktopChanged, this, &PlasmaWindowInterface::VirtualDesktopChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::activeChanged, this, &PlasmaWindowInterface::ActiveChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::appIdChanged, this, &PlasmaWindowInterface::AppIdChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::closeableChanged, this, &PlasmaWindowInterface::CloseableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::demandsAttentionChanged, this, &PlasmaWindowInterface::DemandsAttentionChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::fullscreenableChanged, this, &PlasmaWindowInterface::FullscreenableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::fullscreenChanged, this, &PlasmaWindowInterface::FullscreenChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::geometryChanged, this, &PlasmaWindowInterface::GeometryChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::iconChanged, this, &PlasmaWindowInterface::IconChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::keepAboveChanged, this, &PlasmaWindowInterface::KeepAboveChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::keepBelowChanged, this, &PlasmaWindowInterface::KeepBelowChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::maximizeableChanged, this, &PlasmaWindowInterface::MaximizeableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::maximizedChanged, this, &PlasmaWindowInterface::MaximizedChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::minimizeableChanged, this, &PlasmaWindowInterface::MinimizeableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::minimizedChanged, this, &PlasmaWindowInterface::MinimizedChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::movableChanged, this, &PlasmaWindowInterface::MovableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::onAllDesktopsChanged, this, &PlasmaWindowInterface::OnAllDesktopsChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::parentWindowChanged, this, &PlasmaWindowInterface::ParentWindowChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::plasmaVirtualDesktopEntered, this, &PlasmaWindowInterface::PlasmaVirtualDesktopEntered);
+    connect(m_plasmaWindow, &PlasmaWindow::plasmaVirtualDesktopLeft, this, &PlasmaWindowInterface::PlasmaVirtualDesktopLeft);
+    connect(m_plasmaWindow, &PlasmaWindow::resizableChanged, this, &PlasmaWindowInterface::ResizableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::shadeableChanged, this, &PlasmaWindowInterface::ShadeableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::shadedChanged, this, &PlasmaWindowInterface::ShadedChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::skipSwitcherChanged, this, &PlasmaWindowInterface::SkipSwitcherChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::skipTaskbarChanged, this, &PlasmaWindowInterface::SkipTaskbarChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::titleChanged, this, &PlasmaWindowInterface::TitleChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::unmapped, this, &PlasmaWindowInterface::Unmapped);
+    connect(m_plasmaWindow, &PlasmaWindow::virtualDesktopChangeableChanged, this, &PlasmaWindowInterface::VirtualDesktopChangeableChanged);
+    connect(m_plasmaWindow, &PlasmaWindow::virtualDesktopChanged, this, &PlasmaWindowInterface::VirtualDesktopChanged);
 }
 
 QString PlasmaWindowInterface::AppId() const
 {
-    return m_plasmaWindow->AppId();
+    if (m_plasmaWindow != nullptr) {
+         return m_plasmaWindow->appId();
+    }
+
+    return QString();
 }
 
 void PlasmaWindowInterface::Destroy()
 {
-    m_plasmaWindow->Destroy();
+     if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->destroy();
+    }
 }
 
 QRect PlasmaWindowInterface::Geometry() const
 {
-    return m_plasmaWindow->Geometry();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->geometry();
+    }
+
+    return QRect();
 }
 
 QIcon PlasmaWindowInterface::Icon () const
 {
-    return m_plasmaWindow->Icon();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->icon();
+    }
+
+    return QIcon();
 }
 
 quint32 PlasmaWindowInterface::InternalId () const
 {
-    return m_plasmaWindow->InternalId();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->internalId();
+    }
+
+    return 0;
 }
 
 bool PlasmaWindowInterface::PlasmaWindowInterface::IsActive () const
 {
-    return m_plasmaWindow->IsActive();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isActive();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsCloseable () const
 {
-    return m_plasmaWindow->IsCloseable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isCloseable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsDemandingAttention () const
 {
-    return m_plasmaWindow->IsDemandingAttention();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isDemandingAttention();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsFullscreen () const
 {
-    return m_plasmaWindow->IsFullscreen();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isFullscreen();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsFullscreenable () const
 {
-    return m_plasmaWindow->IsFullscreenable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isFullscreenable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsKeepAbove () const
 {
-    return m_plasmaWindow->IsKeepAbove();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isKeepAbove();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsKeepBelow () const
 {
-    return m_plasmaWindow->IsKeepBelow();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isKeepBelow();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsMaximizeable () const
 {
-    return m_plasmaWindow->IsMaximizeable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isMaximizeable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsMaximized () const
 {
-    return m_plasmaWindow->IsMaximized();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isMaximized();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsMinimizeable () const
 {
-    return m_plasmaWindow->IsMinimizeable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isMinimizeable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsMinimized () const
 {
-    return m_plasmaWindow->IsMinimized();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isMinimized();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsMovable () const
 {
-    return m_plasmaWindow->IsMovable();
+    if(m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isMovable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsOnAllDesktops () const
 {
-    return m_plasmaWindow->IsOnAllDesktops();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isOnAllDesktops();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsResizable () const
 {
-    return m_plasmaWindow->IsResizable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isResizable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsShadeable () const
 {
-    return m_plasmaWindow->IsShadeable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isShadeable();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsShaded () const
 {
-    return m_plasmaWindow->IsShaded();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isShaded();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsValid () const
 {
-    return m_plasmaWindow->IsValid();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isValid();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::IsVirtualDesktopChangeable () const
 {
-    return m_plasmaWindow->IsVirtualDesktopChangeable();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->isVirtualDesktopChangeable();
+    }
+
+    return false;
 }
 
 quint32 PlasmaWindowInterface::Pid () const
 {
-    return m_plasmaWindow->Pid();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->pid();
+    }
+
+    return 0;
 }
 
 QStringList PlasmaWindowInterface::PlasmaVirtualDesktops () const
 {
-    return m_plasmaWindow->PlasmaVirtualDesktops();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->plasmaVirtualDesktops();
+    }
+
+    return QStringList();
 }
 
 void PlasmaWindowInterface::Release ()
 {
-    m_plasmaWindow->Release();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->release();
+    }
 }
 
 void PlasmaWindowInterface::RequestActivate ()
 {
-    m_plasmaWindow->RequestActivate();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestActivate();
+    }
 }
 
 void PlasmaWindowInterface::RequestClose ()
 {
-    m_plasmaWindow->RequestClose();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestClose();
+    }
 }
 
 void PlasmaWindowInterface::RequestEnterNewVirtualDesktop ()
 {
-    m_plasmaWindow->RequestEnterNewVirtualDesktop();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestEnterNewVirtualDesktop();
+    }
 }
 
 void PlasmaWindowInterface::RequestEnterVirtualDesktop (const QString &id)
 {
-    m_plasmaWindow->RequestEnterVirtualDesktop(id);
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestEnterVirtualDesktop(id);
+    }
 }
 
 void PlasmaWindowInterface::RequestLeaveVirtualDesktop (const QString &id)
 {
-    m_plasmaWindow->RequestLeaveVirtualDesktop(id);
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestLeaveVirtualDesktop(id);
+    }
 }
 
 void PlasmaWindowInterface::RequestMove ()
 {
-    m_plasmaWindow->RequestMove();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestMove();
+    }
 }
 
 void PlasmaWindowInterface::RequestResize ()
 {
-    m_plasmaWindow->RequestResize();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestResize();
+    }
 }
 
 void PlasmaWindowInterface::RequestToggleKeepAbove ()
 {
-    m_plasmaWindow->RequestToggleKeepAbove();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestToggleKeepAbove();
+    }
 }
 
 void PlasmaWindowInterface::RequestToggleKeepBelow ()
 {
-    m_plasmaWindow->RequestToggleKeepBelow();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestToggleKeepBelow();
+    }
 }
 
 void PlasmaWindowInterface::RequestToggleMaximized ()
 {
-    m_plasmaWindow->RequestToggleMaximized();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestToggleMaximized();
+    }
 }
 
 void PlasmaWindowInterface::RequestToggleMinimized ()
 {
-    m_plasmaWindow->RequestToggleMinimized();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestToggleMinimized();
+    }
 }
 
 void PlasmaWindowInterface::RequestToggleShaded ()
 {
-    m_plasmaWindow->RequestToggleShaded();
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestToggleShaded();
+    }
 }
 
 void PlasmaWindowInterface::RequestVirtualDesktop (quint32 desktop)
 {
-    m_plasmaWindow->RequestVirtualDesktop(desktop);
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->requestVirtualDesktop(desktop);
+    }
 }
 
 void PlasmaWindowInterface::SetMinimizedGeometry (Surface *panel, const QRect &geom)
 {
-    m_plasmaWindow->SetMinimizedGeometry(panel, geom);
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->setMinimizedGeometry(panel, geom);
+    }
 }
 
 bool PlasmaWindowInterface::SkipSwitcher () const
 {
-    return m_plasmaWindow->SkipSwitcher();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->skipSwitcher();
+    }
+
+    return false;
 }
 
 bool PlasmaWindowInterface::SkipTaskbar () const
 {
-    return m_plasmaWindow->SkipTaskbar();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->skipTaskbar();
+    }
+
+    return false;
 }
 
 QString PlasmaWindowInterface::Title () const
 {
-    return m_plasmaWindow->Title();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->title();
+    }
+
+    return QString();
 }
 
 void PlasmaWindowInterface::UnsetMinimizedGeometry (Surface *panel)
 {
-    m_plasmaWindow->UnsetMinimizedGeometry(panel);
+    if (m_plasmaWindow != nullptr) {
+        m_plasmaWindow->unsetMinimizedGeometry(panel);
+    }
 }
 
 quint32 PlasmaWindowInterface::VirtualDesktop () const
 {
-    return m_plasmaWindow->VirtualDesktop();
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->virtualDesktop();
+    }
+
+    return 0;
 }
