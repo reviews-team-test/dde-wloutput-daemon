@@ -57,7 +57,7 @@ QString DPlasmaWindow::AppId() const
 
 void DPlasmaWindow::Destroy()
 {
-    if (m_plasmaWindow != nullptr) {
+     if (m_plasmaWindow != nullptr) {
         m_plasmaWindow->destroy();
     }
 }
@@ -348,7 +348,7 @@ void DPlasmaWindow::RequestToggleMaximized ()
 
 void DPlasmaWindow::RequestToggleMinimized ()
 {
-    if (!m_plasmaWindow) {
+    if (m_plasmaWindow != nullptr) {
         m_plasmaWindow->requestToggleMinimized();
     }
 }
