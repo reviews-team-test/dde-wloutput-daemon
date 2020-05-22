@@ -29,6 +29,7 @@ void PlasmaWindowManagerInterface::windowAdd(const QString& dbus)
 {
     m_windowsDbusPath.append(dbus);
     Q_EMIT WindowCreated(dbus);
+    Q_EMIT ActiveWindowChanged();
 }
 
 void PlasmaWindowManagerInterface::windowRemove(const QString& dbus)
