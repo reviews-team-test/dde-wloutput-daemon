@@ -7,7 +7,6 @@
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QDBusInterface>
-
 #include <event_queue.h>
 #include <plasmawindowmanagement.h>
 #include "plasma_window_interface.h"
@@ -282,6 +281,7 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
 
 void wloutput_interface::StartWork()
 {
+
     QObject::connect(m_pConnectThread, &ConnectionThread::connected, this, [ this ] {
         m_eventQueue = new EventQueue(this);
         m_eventQueue->setup(m_pConnectThread);
@@ -292,16 +292,27 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
         QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
 
-        connect(m_pRegisry, &Registry::seatAnnounced, this,
-            [ = ](quint32 name, quint32 version) {
-                m_seat = m_pRegisry->createSeat(name, version, this);
+        connect(m_pRegisry, &Registry::seatAnnounced, this, [ = ](quint32 name, quint32 version) {
+            qDebug() << "create seat";
+            m_seat = m_pRegisry->createSeat(name, version, this);
         });
+
+        connect(m_pRegisry, &Registry::fakeInputAnnounced, this, [ = ](quint32 name, quint32 version) {
+            qDebug() << "create fakeinput";
+            m_fakeInput = m_pRegisry->createFakeInput(name, version, this);
+            bool has = m_fakeInput->isValid();
+            if (!has) {
+                qDebug() << "create fakeinput failed!!!!!!";
+            }
+            qDebug() << "create fakeinput successed";
+        });
+        
+
         connect(m_pRegisry, &Registry::idleAnnounced, this, [ = ](quint32 name, quint32 version) {
             m_idle = m_pRegisry->createIdle(name, version, this);
         });
         connect(m_pRegisry, &Registry::interfacesAnnounced, this, [ this ] {
             if(m_wlIdleInterface != nullptr) m_wlIdleInterface->setData(m_seat, m_idle);
-
         });
 
         m_pRegisry->setEventQueue(m_eventQueue);
@@ -413,6 +424,26 @@ void wloutput_interface::Apply(QString outputs)
     else {
         qDebug() << "listOutputInfo is empty";
     }
+}
+
+void wloutput_interface::WlSimulateKey(int keycode)
+{
+    if (m_fakeInput == nullptr) {
+        qDebug() << "WlSimulateKey m_fakeInput is NULL!!!!!!";
+        return ;
+    }
+
+    bool has = m_fakeInput->isValid();
+    if (!has) {
+        qDebug() << "WlSimulateKey fakeinput is invalid!!!!!!";
+        return ;
+    }
+
+    qDebug() << "WlSimulateKey keycode:" << keycode;
+    m_fakeInput->authenticate(QStringLiteral("test-case"), QStringLiteral("to test"));
+    m_fakeInput->requestKeyboardKeyPress(keycode);  //KEY_NUMLOCK
+    m_fakeInput->requestKeyboardKeyRelease(keycode);
+    return ;
 }
 
 void wloutput_interface::onDeviceChanged(OutputDevice *dev)

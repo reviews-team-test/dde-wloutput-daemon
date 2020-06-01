@@ -10,6 +10,7 @@
 
 #include <outputdevice.h>
 #include <registry.h>
+#include <fakeinput.h>
 #include <connection_thread.h>
 #include <outputmanagement.h>
 #include <QList>
@@ -82,6 +83,7 @@ public Q_SLOTS:
     QString ListOutput();
     QString GetOutput(QString uuid);
     void Apply(QString outputs);
+    void WlSimulateKey(int keycode);
 
 private:
     void onDeviceChanged(OutputDevice *dev);
@@ -102,6 +104,7 @@ private:
     WlIdleInterface *m_wlIdleInterface{nullptr};
     Idle *m_idle{nullptr};
     Seat *m_seat{nullptr};
+    FakeInput *m_fakeInput{nullptr};
 };
 
 #endif // WLOUTPUT_INTERFACE_H
