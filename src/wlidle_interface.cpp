@@ -16,8 +16,14 @@ WlIdleInterface::~WlIdleInterface()
 
 void WlIdleInterface::SetIdleTimeout(quint32 time)
 {
-    if (time == 0)
+    if (time == 0) {
+        if (m_idleTimeout != nullptr) {
+            m_idleTimeout->release();
+            m_idleTimeout = nullptr;
+        }
+        m_timeout = 0;
         return;
+    }
 
     if(m_timeout != time) {
         m_timeout = time;
