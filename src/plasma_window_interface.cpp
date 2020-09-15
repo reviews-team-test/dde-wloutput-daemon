@@ -419,3 +419,11 @@ quint32 PlasmaWindowInterface::VirtualDesktop () const
 
     return 0;
 }
+
+quint32 PlasmaWindowInterface::WindowId() const
+{
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->windowId();
+    }
+    return 0;
+}
