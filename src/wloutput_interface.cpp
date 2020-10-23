@@ -291,6 +291,13 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
         QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
         QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
+        
+        connect(m_pRegisry, &Registry::ddeSeatAnnounced, this,
+            [ = ](quint32 name, quint32 version) {
+                qDebug() << "create ddeseat";
+                m_ddeSeat = m_pRegisry->createDDESeat(name, version, this);
+            }
+        );
 
         connect(m_pRegisry, &Registry::seatAnnounced, this, [ = ](quint32 name, quint32 version) {
             qDebug() << "create seat";
@@ -313,6 +320,34 @@ void wloutput_interface::StartWork()
         });
         connect(m_pRegisry, &Registry::interfacesAnnounced, this, [ this ] {
             if(m_wlIdleInterface != nullptr) m_wlIdleInterface->setData(m_seat, m_idle);
+
+            if (m_ddeSeat) {
+                m_ddePointer = m_ddeSeat->createDDePointer(this);
+                connect(m_ddePointer, &DDEPointer::buttonStateChanged, this,
+                    [this] (const QPointF &pos, quint32 button, KWayland::Client::DDEPointer::ButtonState state) {
+                        if (state == DDEPointer::ButtonState::Released) {
+                            qDebug() << "button Released" << pos;
+                             Q_EMIT ButtonRelease(button, pos.x(), pos.y());
+                            return;
+                        }
+                        if (button == BTN_LEFT) {
+                            qDebug() << "BTN_LEFT Pressed" << button << pos;
+                            Q_EMIT ButtonPress(button, pos.x(), pos.y());
+                        } else if (button == BTN_RIGHT) {
+                            qDebug() << "BTN_RIGHT Pressed" << pos << button;
+                            Q_EMIT ButtonPress(button, pos.x(), pos.y());
+                        }
+                    }
+                );
+                connect(m_ddePointer, &DDEPointer::motion, this,
+                    [this] (const QPointF &pos) {
+                            qDebug() << "motion" << pos;
+                            Q_EMIT CursorMove(pos.x(), pos.y());
+                             
+                        
+                    }
+                );
+            }
         });
 
         m_pRegisry->setEventQueue(m_eventQueue);

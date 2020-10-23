@@ -14,9 +14,13 @@
 #include <connection_thread.h>
 #include <outputmanagement.h>
 #include <QList>
+#include <QTimer>
 #include <outputconfiguration.h>
 
 #include "wlidle_interface.h"
+#include <ddeseat.h>
+#include <pointer.h>
+#include <linux/input.h>
 
 namespace KWayland {
 namespace  Client{
@@ -78,6 +82,9 @@ signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
+    void  ButtonPress(quint32 button, quint32 x, quint32 y);
+    void  ButtonRelease(quint32 button, quint32 x, quint32 y);
+    void  CursorMove(quint32 x, quint32 y);
 
 public Q_SLOTS:
     QString ListOutput();
@@ -104,7 +111,10 @@ private:
     WlIdleInterface *m_wlIdleInterface{nullptr};
     Idle *m_idle{nullptr};
     Seat *m_seat{nullptr};
+    DDESeat *m_ddeSeat = nullptr;
+    DDEPointer *m_ddePointer = nullptr;
     FakeInput *m_fakeInput{nullptr};
+    QTimer *m_timer;
 };
 
 #endif // WLOUTPUT_INTERFACE_H
