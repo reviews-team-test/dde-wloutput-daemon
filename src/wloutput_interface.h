@@ -15,6 +15,7 @@
 #include <outputmanagement.h>
 #include <QList>
 #include <QTimer>
+#include <QByteArray>
 #include <outputconfiguration.h>
 
 #include "wlidle_interface.h"
@@ -49,6 +50,7 @@ typedef  struct _output_info
     QString model;
     QString manufacturer;
     QString uuid;
+    QByteArray edid;
     int enabled;
     int x;
     int y;

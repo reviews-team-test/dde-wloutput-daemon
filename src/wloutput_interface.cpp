@@ -52,8 +52,9 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
     stOutputInfo.model = dev->model();
     stOutputInfo.manufacturer = dev->manufacturer();
     stOutputInfo.uuid = dev->uuid();
+    stOutputInfo.edid = dev->edid();
 
-
+    qDebug() << "GetOutputInfo: " << dev->edid().length() << dev->edid().toBase64() << stOutputInfo.manufacturer;
     qDebug()<<"[Dev Get]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     switch(dev->enabled())
     {
@@ -144,6 +145,8 @@ QString wloutput_interface::OutputInfo2Json(QList<OutputInfo>& listOutputInfos)
         jsonOutputInfo.insert("phys_width", oIterOutputInfo->phys_width);
         jsonOutputInfo.insert("phys_height", oIterOutputInfo->phys_height);
         jsonOutputInfo.insert("scale", oIterOutputInfo->scale);
+        QByteArray edidBase64 = oIterOutputInfo->edid.toBase64();
+        jsonOutputInfo.insert("edid_base64", QString(edidBase64));
 
 
 
@@ -204,6 +207,9 @@ QList<OutputInfo> wloutput_interface::json2OutputInfo(QString jsonString)
                 stOutputInfo.phys_width = jsonOutputInfo.value("phys_width").toInt();
                 stOutputInfo.phys_height = jsonOutputInfo.value("phys_height").toInt();
                 stOutputInfo.scale = jsonOutputInfo.value("scale").toDouble();
+
+                QString edidBase64 = jsonOutputInfo.value("edid_base64").toString();
+                stOutputInfo.edid = QByteArray::fromBase64(edidBase64.toLatin1());
 
                 QJsonValue modeInfoValue = jsonOutputInfo.value("ModeInfo");
                 if (modeInfoValue.isArray()) {
@@ -313,7 +319,7 @@ void wloutput_interface::StartWork()
             }
             qDebug() << "create fakeinput successed";
         });
-        
+
 
         connect(m_pRegisry, &Registry::idleAnnounced, this, [ = ](quint32 name, quint32 version) {
             m_idle = m_pRegisry->createIdle(name, version, this);
