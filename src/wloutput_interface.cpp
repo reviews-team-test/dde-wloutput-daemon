@@ -347,7 +347,6 @@ void wloutput_interface::StartWork()
                 );
                 connect(m_ddePointer, &DDEPointer::motion, this,
                     [this] (const QPointF &pos) {
-                            qDebug() << "motion" << pos;
                             Q_EMIT CursorMove(pos.x(), pos.y());
                              
                         
