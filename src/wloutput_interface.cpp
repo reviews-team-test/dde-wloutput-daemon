@@ -11,6 +11,7 @@
 #include <plasmawindowmanagement.h>
 #include "plasma_window_interface.h"
 #include "window_manager_interface.h"
+#include "wldpms_manager_interface.h"
 
 static QMap<QString, OutputDevice*> uuid2OutputDevice;
 
@@ -348,11 +349,12 @@ void wloutput_interface::StartWork()
                 connect(m_ddePointer, &DDEPointer::motion, this,
                     [this] (const QPointF &pos) {
                             Q_EMIT CursorMove(pos.x(), pos.y());
-                             
-                        
                     }
                 );
             }
+
+            //创建dpms
+            createDpmsManagement();
         });
 
         m_pRegisry->setEventQueue(m_eventQueue);
@@ -550,3 +552,65 @@ void wloutput_interface::onDeviceRemove(quint32 name, quint32 version) {
     });
 
 }
+
+void wloutput_interface::createDpmsManagement()
+{
+    const bool hasDpms = m_pRegisry->hasInterface(Registry::Interface::Dpms);
+    if (hasDpms) {
+        qDebug() << "create dpms manager";
+        const auto dpmsData = m_pRegisry->interface(Registry::Interface::Dpms);
+        m_dpmsManger = m_pRegisry->createDpmsManager(dpmsData.name, dpmsData.version);
+        m_wldpms_Manager = new WlDpmsManagerInterface(m_dpmsManger);
+        if(!QDBusConnection::sessionBus().registerObject(DPMS_MANAGER_PATH, m_dpmsManger)) {
+            qDebug() << "register dpms manager interface failed";
+        }
+
+        //创建output
+        const auto outputs = m_pRegisry->interfaces(Registry::Interface::Output);
+        for (auto o : outputs) {
+            Output *output = m_pRegisry->createOutput(o.name, o.version, m_pRegisry);
+            registerDpmsDbus(output);
+        }
+
+        connect(m_pRegisry, &Registry::outputAnnounced, this, [=] (quint32 name, quint32 version){
+            Output *output = m_pRegisry->createOutput(name, version, m_pRegisry);
+            registerDpmsDbus(output);
+        });
+
+    } else {
+        qDebug() << ("Compositor does not provide a DpmsManager");
+    }
+}
+
+ void wloutput_interface::registerDpmsDbus(Output *output)
+ {
+     if (Dpms * dpms = m_dpmsManger->getDpms(output)) {
+         wldpms_interface *dpmsinterface = new wldpms_interface(dpms);
+         QString dbus_path;
+         int count = 1;
+         while(1) {
+             dbus_path = DPMS_PATH + "_" + QString::number(count);
+             if (m_wldpms_Manager->dpmsList().contains(dbus_path)) {
+                  ++count;
+             } else {
+                  break;
+             }
+         }
+
+         if ( !QDBusConnection::sessionBus().registerObject(dbus_path, dpms)) {
+             qDebug() << "register dpms interface failed";
+         } else {
+             m_wldpms_Manager->dpmsDbusAdd(dbus_path);
+         }
+
+         connect(output, &Output::changed, this, [dpmsinterface, output] {
+             dpmsinterface->setDpmsName(output->model());
+         });
+
+         connect(output, &Output::removed, this, [dpmsinterface, dbus_path, this] {
+             QDBusConnection::sessionBus().unregisterObject(dbus_path);
+             m_wldpms_Manager->dpmsDbusRemove(dbus_path);
+             dpmsinterface->deleteLater();
+         });
+     }
+ }

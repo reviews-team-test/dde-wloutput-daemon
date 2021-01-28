@@ -17,11 +17,15 @@
 #include <QTimer>
 #include <QByteArray>
 #include <outputconfiguration.h>
+#include <dpms.h>
+#include <output.h>
 
 #include "wlidle_interface.h"
+#include "wldpms_interface.h"
 #include <ddeseat.h>
 #include <pointer.h>
 #include <linux/input.h>
+#include "wldpms_manager_interface.h"
 
 namespace KWayland {
 namespace  Client{
@@ -93,12 +97,13 @@ public Q_SLOTS:
     QString GetOutput(QString uuid);
     void Apply(QString outputs);
     void WlSimulateKey(int keycode);
-
 private:
     void onDeviceChanged(OutputDevice *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
+    void createDpmsManagement();
+    void registerDpmsDbus(Output *output);
 
 private:
     //QTimer m_Timer;
@@ -117,6 +122,8 @@ private:
     DDEPointer *m_ddePointer = nullptr;
     FakeInput *m_fakeInput{nullptr};
     QTimer *m_timer;
+    WlDpmsManagerInterface *m_wldpms_Manager{nullptr};
+    DpmsManager *m_dpmsManger{nullptr};
 };
 
 #endif // WLOUTPUT_INTERFACE_H
