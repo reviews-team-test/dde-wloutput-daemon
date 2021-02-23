@@ -46,3 +46,23 @@ QString wldpms_interface::getDpmsName()
 {
     return m_name;
 }
+
+void wldpms_interface::setDpmsMode(int mode)
+{
+    switch (mode) {
+    case 0:
+        m_Dpms->requestMode(Dpms::Mode::On);
+        break;
+    case 1:
+        m_Dpms->requestMode(Dpms::Mode::Standby);
+        break;
+    case 2:
+        m_Dpms->requestMode(Dpms::Mode::Suspend);
+        break;
+    case 3:
+        m_Dpms->requestMode(Dpms::Mode::Off);
+        break;
+    default:
+        break;
+    }
+}

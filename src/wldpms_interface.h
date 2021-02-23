@@ -27,6 +27,7 @@ signals:
 public Q_SLOTS:
     int getDpmsMode();
     QString getDpmsName();
+    void setDpmsMode(int mode);
 private:
     int m_mode;
     QString m_name;
