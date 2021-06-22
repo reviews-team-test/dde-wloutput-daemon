@@ -97,6 +97,7 @@ public Q_SLOTS:
     QString GetOutput(QString uuid);
     void Apply(QString outputs);
     void WlSimulateKey(int keycode);
+    void setBrightness(QString uuid, const int brightness);
 private:
     void onDeviceChanged(OutputDevice *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
