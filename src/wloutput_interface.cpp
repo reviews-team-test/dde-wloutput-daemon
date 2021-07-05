@@ -556,6 +556,7 @@ void wloutput_interface::onDeviceRemove(quint32 name, quint32 version) {
        listOutputInfos.push_back(stOutputInfo);
        QString json = OutputInfo2Json(listOutputInfos);
        //qDebug() << json;
+       uuid2OutputDevice.remove(dev->uuid());
        Q_EMIT OutputRemoved(json);
 //                   QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
 //                   QList<QVariant> arg;
