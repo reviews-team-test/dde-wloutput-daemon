@@ -74,13 +74,84 @@ QRect PlasmaWindowInterface::Geometry() const
     return QRect();
 }
 
-QIcon PlasmaWindowInterface::Icon () const
+// 查找最合适的图标大小,参考xutils.go里470行的逻辑
+// findBestEwmhIcon takes width/height dimensions and a slice of *ewmh.WmIcon
+// and finds the best matching icon of the bunch. We always prefer bigger.
+// If no icons are bigger than the preferred dimensions, use the biggest
+// available. Otherwise, use the smallest icon that is greater than or equal
+// to the preferred dimensions. The preferred dimensions is essentially
+// what you'll likely scale the resulting icon to.
+// If width and height are 0, then the largest icon found will be returned.
+QPixmap findBestEwmhIcon(QIcon icon, int width, int height)
 {
-    if (m_plasmaWindow != nullptr) {
-        return m_plasmaWindow->icon();
+    if (icon.isNull())
+        return QPixmap();
+
+    int best = -1;
+    int parea = width * height;  // preferred size
+
+    // If zero area, set it to the largest possible.
+    if (parea == 0) {
+        parea = INT_MAX;
     }
 
-    return QIcon();
+    int bestArea = 0;
+    int iconArea = 0;
+    QList<QSize> sizes = icon.availableSizes();
+
+    for (int i = 0; i < sizes.size(); ++i) {
+        // the first valid icon we've seen; use it
+        if (best == -1) {
+            best = i;
+            continue;
+        }
+
+        // load areas for comparison
+        bestArea = sizes[best].width() * sizes[best].height();
+        iconArea = sizes[i].width() * sizes[i].height();
+
+        // We don't always want to accept bigger icons if our best is alread bigger.
+        // But we always want something bigger if our best is insufficient.
+        if ((iconArea >= parea && iconArea <= bestArea) ||
+                (bestArea < parea && iconArea > bestArea))
+            best = i;
+    }
+
+    if (best > -1)
+        return icon.pixmap(sizes[best]);
+
+    return QPixmap();
+}
+
+const int bestIconSize = 48;
+
+QString PlasmaWindowInterface::Icon () const
+{
+    if (m_plasmaWindow != nullptr) {
+        QIcon icon = m_plasmaWindow->icon();
+
+        // 查找最合适的图标大小，然后将图片数据转为base64的数据
+        QByteArray hexed;
+        QPixmap pix = findBestEwmhIcon(icon, bestIconSize, bestIconSize);
+        if (!pix.isNull()) {
+            QByteArray ba;
+            QBuffer buf(&ba);
+            pix.save(&buf, "PNG");
+            hexed = ba.toBase64();
+            buf.close();
+        }
+
+        if (hexed.isNull() || hexed.isEmpty())
+            return QString();
+
+        // 将base64的图片原始数据组装成Data URL scheme格式
+        QString dataUrl;
+        dataUrl.append("data:image/png;base64,");
+        dataUrl.append(hexed);
+        return  dataUrl;
+    }
+
+    return QString();
 }
 
 quint32 PlasmaWindowInterface::InternalId () const

@@ -58,7 +58,7 @@ public Q_SLOTS:
     QString AppId() const;
     void Destroy();
     QRect Geometry() const;
-    QIcon Icon () const;
+    QString Icon () const;
     quint32 InternalId () const;
     bool IsActive () const;
     bool IsCloseable () const;
