@@ -88,9 +88,10 @@ signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
-    void  ButtonPress(quint32 button, quint32 x, quint32 y);
-    void  ButtonRelease(quint32 button, quint32 x, quint32 y);
-    void  CursorMove(quint32 x, quint32 y);
+    void ButtonPress(quint32 button, quint32 x, quint32 y);
+    void ButtonRelease(quint32 button, quint32 x, quint32 y);
+    void CursorMove(quint32 x, quint32 y);
+    void AxisChanged(int orientation, qreal delta);
 
 public Q_SLOTS:
     QString ListOutput();
