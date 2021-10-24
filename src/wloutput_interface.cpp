@@ -333,24 +333,19 @@ void wloutput_interface::StartWork()
                 connect(m_ddePointer, &DDEPointer::buttonStateChanged, this,
                     [this] (const QPointF &pos, quint32 button, KWayland::Client::DDEPointer::ButtonState state) {
                         if (state == DDEPointer::ButtonState::Released) {
-                            qDebug() << "button Released" << pos;
-                             Q_EMIT ButtonRelease(button, pos.x(), pos.y());
-                            return;
-                        }
-                        if (button == BTN_LEFT) {
-                            qDebug() << "BTN_LEFT Pressed" << button << pos;
-                            Q_EMIT ButtonPress(button, pos.x(), pos.y());
-                        } else if (button == BTN_RIGHT) {
-                            qDebug() << "BTN_RIGHT Pressed" << pos << button;
+                            Q_EMIT ButtonRelease(button, pos.x(), pos.y());
+                        } else {
                             Q_EMIT ButtonPress(button, pos.x(), pos.y());
                         }
                     }
                 );
-                connect(m_ddePointer, &DDEPointer::motion, this,
-                    [this] (const QPointF &pos) {
-                            Q_EMIT CursorMove(pos.x(), pos.y());
-                    }
+                connect(m_ddePointer, &DDEPointer::motion, this, [this] (const QPointF &pos) {
+                    Q_EMIT CursorMove(pos.x(), pos.y());
+                }
                 );
+                connect(m_ddePointer, &DDEPointer::axisChanged, this, [this] (KWayland::Client::DDEPointer::Axis axis, qreal delta) {
+                    Q_EMIT AxisChanged(int(axis), delta);
+                });
             }
 
             //创建dpms
