@@ -8,15 +8,15 @@
 #include <QtDBus/QDBusConnection>
 #include <QThread>
 
-#include <outputdevice.h>
+#include <outputdevice_v2.h>
 #include <registry.h>
 #include <fakeinput.h>
 #include <connection_thread.h>
-#include <outputmanagement.h>
+#include <outputmanagement_v2.h>
 #include <QList>
 #include <QTimer>
 #include <QByteArray>
-#include <outputconfiguration.h>
+#include <outputconfiguration_v2.h>
 #include <dpms.h>
 #include <output.h>
 
@@ -80,7 +80,7 @@ public:
     bool InitDBus();
     void StartWork();
     QDBusAbstractAdaptor* idleObject() { return m_wlIdleInterface; }
-    static OutputInfo GetOutputInfo(const OutputDevice* dev);
+    static OutputInfo GetOutputInfo(const OutputDeviceV2* dev);
     static QString OutputInfo2Json(QList<OutputInfo>& listOutputInfos);
     static QList<OutputInfo> json2OutputInfo(QString jsonString);
 
@@ -100,7 +100,7 @@ public Q_SLOTS:
     void WlSimulateKey(int keycode);
     void setBrightness(QString uuid, const int brightness);
 private:
-    void onDeviceChanged(OutputDevice *dev);
+    void onDeviceChanged(OutputDeviceV2 *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
@@ -112,8 +112,8 @@ private:
     ConnectionThread *m_pConnectThread{nullptr};
     QThread *m_pThread{nullptr};
     Registry *m_pRegisry{nullptr};
-    OutputManagement *m_pManager{nullptr};
-    OutputConfiguration *m_pConf{nullptr};
+    OutputManagementV2 *m_pManager{nullptr};
+    OutputConfigurationV2 *m_pConf{nullptr};
     EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
     PlasmaWindowManagement *m_pWindowManager{nullptr};

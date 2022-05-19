@@ -1,7 +1,7 @@
 #include "wloutput_interface.h"
 #include <QDebug>
 #include <QtDBus/QDBusMessage>
-#include <outputdevice.h>
+#include <outputdevicemode_v2.h>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -13,7 +13,7 @@
 #include "window_manager_interface.h"
 #include "wldpms_manager_interface.h"
 
-static QMap<QString, OutputDevice*> uuid2OutputDevice;
+static QMap<QString, OutputDeviceV2*> uuid2OutputDevice;
 
 wloutput_interface::wloutput_interface(QObject *parent)
     : QDBusAbstractAdaptor(parent)
@@ -47,7 +47,7 @@ wloutput_interface::~wloutput_interface()
         m_pManager->deleteLater();
 }
 
-OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
+OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
 {
     OutputInfo stOutputInfo;
     stOutputInfo.model = dev->model();
@@ -59,10 +59,10 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
     qDebug()<<"[Dev Get]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     switch(dev->enabled())
     {
-        case OutputDevice::Enablement::Disabled:
+        case OutputDeviceV2::Enablement::Disabled:
             stOutputInfo.enabled = 0;
             break;
-        case OutputDevice::Enablement::Enabled:
+        case OutputDeviceV2::Enablement::Enabled:
             stOutputInfo.enabled = 1;
             break;
 
@@ -77,28 +77,28 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
 
     switch (dev->transform())
     {
-        case OutputDevice::Transform::Normal:
+        case OutputDeviceV2::Transform::Normal:
             stOutputInfo.transform = 0;
             break;
-        case OutputDevice::Transform::Rotated90:
+        case OutputDeviceV2::Transform::Rotated90:
             stOutputInfo.transform = 1;
             break;
-        case OutputDevice::Transform::Rotated180:
+        case OutputDeviceV2::Transform::Rotated180:
             stOutputInfo.transform = 2;
             break;
-        case OutputDevice::Transform::Rotated270:
+        case OutputDeviceV2::Transform::Rotated270:
             stOutputInfo.transform = 3;
             break;
-        case OutputDevice::Transform::Flipped:
+        case OutputDeviceV2::Transform::Flipped:
             stOutputInfo.transform = 4;
             break;
-        case OutputDevice::Transform::Flipped90:
+        case OutputDeviceV2::Transform::Flipped90:
             stOutputInfo.transform = 5;
             break;
-        case OutputDevice::Transform::Flipped180:
+        case OutputDeviceV2::Transform::Flipped180:
             stOutputInfo.transform = 6;
             break;
-        case OutputDevice::Transform::Flipped270:
+        case OutputDeviceV2::Transform::Flipped270:
             stOutputInfo.transform = 7;
             break;
     }
@@ -106,14 +106,15 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDevice* dev)
     stOutputInfo.phys_height = dev->physicalSize().height();
     stOutputInfo.scale = dev->scale();
     auto modes = dev->modes();
+    int index = 0;
     for (auto oIter = modes.begin(); oIter != modes.end(); ++oIter)
     {
         ModeInfo stModeInfo;
-        stModeInfo.id = oIter->id;
-        stModeInfo.width = oIter->size.width();
-        stModeInfo.height = oIter->size.height();
-        stModeInfo.refresh_rate = oIter->refreshRate;
-        stModeInfo.flags = oIter->flags;
+        stModeInfo.id = index++;
+        stModeInfo.width = (*oIter)->size().width();
+        stModeInfo.height = (*oIter)->size().height();
+        stModeInfo.refresh_rate = (*oIter)->refreshRate();
+        stModeInfo.flags = (*oIter)->preferred();
         stOutputInfo.lstModeInfos.push_back(stModeInfo);
     }
     return stOutputInfo;
@@ -240,7 +241,7 @@ QList<OutputInfo> wloutput_interface::json2OutputInfo(QString jsonString)
 void wloutput_interface::onMangementAnnounced(quint32 name, quint32 version) {
     qDebug() << "onMangementAnnounced";
 
-    m_pManager = m_pRegisry->createOutputManagement(name, version, this);
+    m_pManager = m_pRegisry->createOutputManagementV2(name, version, this);
     if (!m_pManager || !m_pManager->isValid()) {
         qDebug() << "create manager is nullptr or not valid!";
         return;
@@ -294,11 +295,11 @@ void wloutput_interface::StartWork()
         m_eventQueue->setup(m_pConnectThread);
         m_pRegisry = new Registry(this);
 
-        QObject::connect(m_pRegisry, &Registry::outputManagementAnnounced, this, &wloutput_interface::onMangementAnnounced);
+        QObject::connect(m_pRegisry, &Registry::outputManagementV2Announced, this, &wloutput_interface::onMangementAnnounced);
         QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
-        QObject::connect(m_pRegisry, &Registry::outputDeviceAnnounced, this, &wloutput_interface::onDeviceRemove);
-        QObject::connect(m_pRegisry, &Registry::outputDeviceRemoved, [](quint32 name) {});
-        
+        QObject::connect(m_pRegisry, &Registry::outputDeviceV2Announced, this, &wloutput_interface::onDeviceRemove);
+        QObject::connect(m_pRegisry, &Registry::outputDeviceV2Removed, [](quint32 name) {});
+
         connect(m_pRegisry, &Registry::ddeSeatAnnounced, this,
             [ = ](quint32 name, quint32 version) {
                 qDebug() << "create ddeseat";
@@ -464,16 +465,16 @@ void wloutput_interface::Apply(QString outputs)
                 }
             }
             m_pConf->setPosition(dev, QPoint(stOutputInfo.x, stOutputInfo.y));
-            m_pConf->setEnabled(dev, OutputDevice::Enablement(stOutputInfo.enabled));
+            m_pConf->setEnabled(dev, OutputDeviceV2::Enablement(stOutputInfo.enabled));
             qDebug() << "set output transform to " << stOutputInfo.transform;
-            m_pConf->setTransform(dev, OutputDevice::Transform(stOutputInfo.transform));
+            m_pConf->setTransform(dev, OutputDeviceV2::Transform(stOutputInfo.transform));
             m_pConf->apply();
 
-            QObject::connect(m_pConf, &OutputConfiguration::applied, [this]() {
+            QObject::connect(m_pConf, &OutputConfigurationV2::applied, [this]() {
                 qDebug() << "Configuration applied!";
                 m_bConnected = true;
             });
-            QObject::connect(m_pConf, &OutputConfiguration::failed, [this]() {
+            QObject::connect(m_pConf, &OutputConfigurationV2::failed, [this]() {
                 qDebug() << "Configuration failed!";
                 m_bConnected = true;
             });
@@ -518,14 +519,14 @@ void wloutput_interface::WlSimulateKey(int keycode)
     return ;
 }
 
-void wloutput_interface::onDeviceChanged(OutputDevice *dev)
+void wloutput_interface::onDeviceChanged(OutputDeviceV2 *dev)
 {
     qDebug() << "onDeviceChanged";
     qDebug()<<"[Changed]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     QString uuid = dev->uuid();
     if (uuid2OutputDevice.find(uuid) == uuid2OutputDevice.end()) {
         uuid2OutputDevice.insert(uuid, dev);
-        qDebug() << "OutputDevice::Added uuid=" << uuid;
+        qDebug() << "OutputDeviceV2::Added uuid=" << uuid;
         OutputInfo stOutputInfo = GetOutputInfo(dev);
         QList<OutputInfo> listOutputInfos;
         listOutputInfos.push_back(stOutputInfo);
@@ -538,7 +539,7 @@ void wloutput_interface::onDeviceChanged(OutputDevice *dev)
 //                        QDBusConnection::sessionBus().send(message);
     }
     else {
-        qDebug() << "OutputDevice::changed";
+        qDebug() << "OutputDeviceV2::changed";
         OutputInfo stOutputInfo = GetOutputInfo(dev);
         QList<OutputInfo> listOutputInfos;
         listOutputInfos.push_back(stOutputInfo);
@@ -556,19 +557,19 @@ void wloutput_interface::onDeviceChanged(OutputDevice *dev)
 void wloutput_interface::onDeviceRemove(quint32 name, quint32 version) {
     qDebug() << "onDeviceRemove";
 
-    auto dev = m_pRegisry->createOutputDevice(name, version);
+    auto dev = m_pRegisry->createOutputDeviceV2(name, version);
     if (!dev || !dev->isValid())
     {
         qDebug() << "get dev is null or not valid!";
         return;
     }
 
-    QObject::connect(dev, &OutputDevice::changed, this, [=]{
+    QObject::connect(dev, &OutputDeviceV2::changed, this, [=]{
         this->onDeviceChanged(dev);
     });
 
-    QObject::connect(dev, &OutputDevice::removed, this, [dev, this]{
-       qDebug() << "OutputDevice::removed";
+    QObject::connect(dev, &OutputDeviceV2::removed, this, [dev, this]{
+       qDebug() << "OutputDeviceV2::removed";
        OutputInfo stOutputInfo = GetOutputInfo(dev);
        QList<OutputInfo> listOutputInfos;
        listOutputInfos.push_back(stOutputInfo);
