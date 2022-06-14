@@ -1,3 +1,9 @@
+dde-wloutput-daemon (2.0.0.0) unstable; urgency=medium
+
+  * release 2.0.0.0
+
+ --  <fanpengcheng@uniontech.com>  Tue, 14 June 2022 17:23:13 +0800
+
 dde-wloutput-daemon (1.0.1-1) unstable; urgency=medium
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
