@@ -19,6 +19,7 @@
 #include <outputconfiguration_v2.h>
 #include <dpms.h>
 #include <output.h>
+#include <QSize>
 
 #include "wlidle_interface.h"
 #include "wldpms_interface.h"
@@ -128,6 +129,7 @@ private:
     QTimer *m_timer;
     WlDpmsManagerInterface *m_wldpms_Manager{nullptr};
     DpmsManager *m_dpmsManger{nullptr};
+    QMap<OutputDeviceV2 *, QSize> devSizeMap;
 };
 
 #endif // WLOUTPUT_INTERFACE_H

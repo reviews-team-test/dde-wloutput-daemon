@@ -59,12 +59,12 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
     qDebug()<<"[Dev Get]: "<<dev->model()<<dev->uuid()<<dev->globalPosition()<<dev->geometry()<<dev->refreshRate()<<dev->pixelSize();
     switch(dev->enabled())
     {
-        case OutputDeviceV2::Enablement::Disabled:
-            stOutputInfo.enabled = 0;
-            break;
-        case OutputDeviceV2::Enablement::Enabled:
-            stOutputInfo.enabled = 1;
-            break;
+    case OutputDeviceV2::Enablement::Disabled:
+        stOutputInfo.enabled = 0;
+        break;
+    case OutputDeviceV2::Enablement::Enabled:
+        stOutputInfo.enabled = 1;
+        break;
 
     }
 
@@ -77,30 +77,30 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
 
     switch (dev->transform())
     {
-        case OutputDeviceV2::Transform::Normal:
-            stOutputInfo.transform = 0;
-            break;
-        case OutputDeviceV2::Transform::Rotated90:
-            stOutputInfo.transform = 1;
-            break;
-        case OutputDeviceV2::Transform::Rotated180:
-            stOutputInfo.transform = 2;
-            break;
-        case OutputDeviceV2::Transform::Rotated270:
-            stOutputInfo.transform = 3;
-            break;
-        case OutputDeviceV2::Transform::Flipped:
-            stOutputInfo.transform = 4;
-            break;
-        case OutputDeviceV2::Transform::Flipped90:
-            stOutputInfo.transform = 5;
-            break;
-        case OutputDeviceV2::Transform::Flipped180:
-            stOutputInfo.transform = 6;
-            break;
-        case OutputDeviceV2::Transform::Flipped270:
-            stOutputInfo.transform = 7;
-            break;
+    case OutputDeviceV2::Transform::Normal:
+        stOutputInfo.transform = 0;
+        break;
+    case OutputDeviceV2::Transform::Rotated90:
+        stOutputInfo.transform = 1;
+        break;
+    case OutputDeviceV2::Transform::Rotated180:
+        stOutputInfo.transform = 2;
+        break;
+    case OutputDeviceV2::Transform::Rotated270:
+        stOutputInfo.transform = 3;
+        break;
+    case OutputDeviceV2::Transform::Flipped:
+        stOutputInfo.transform = 4;
+        break;
+    case OutputDeviceV2::Transform::Flipped90:
+        stOutputInfo.transform = 5;
+        break;
+    case OutputDeviceV2::Transform::Flipped180:
+        stOutputInfo.transform = 6;
+        break;
+    case OutputDeviceV2::Transform::Flipped270:
+        stOutputInfo.transform = 7;
+        break;
     }
     stOutputInfo.phys_width = dev->physicalSize().width();
     stOutputInfo.phys_height = dev->physicalSize().height();
@@ -114,7 +114,7 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
         stModeInfo.width = (*oIter)->size().width();
         stModeInfo.height = (*oIter)->size().height();
         stModeInfo.refresh_rate = (*oIter)->refreshRate();
-        stModeInfo.flags = (*oIter)->preferred();
+        stModeInfo.flags = (*oIter)->preferred() ? 2 : 0;
         stOutputInfo.lstModeInfos.push_back(stModeInfo);
     }
     return stOutputInfo;
@@ -283,8 +283,8 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
         });
     });
 
-//    qDebug() << m_pWindowManager->windows();
-//    m_pWindowManager->setShowingDesktop(true);
+    //    qDebug() << m_pWindowManager->windows();
+    //    m_pWindowManager->setShowingDesktop(true);
 }
 
 void wloutput_interface::StartWork()
@@ -301,10 +301,10 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::outputDeviceV2Removed, [](quint32 name) {});
 
         connect(m_pRegisry, &Registry::ddeSeatAnnounced, this,
-            [ = ](quint32 name, quint32 version) {
-                qDebug() << "create ddeseat";
-                m_ddeSeat = m_pRegisry->createDDESeat(name, version, this);
-            }
+                [ = ](quint32 name, quint32 version) {
+            qDebug() << "create ddeseat";
+            m_ddeSeat = m_pRegisry->createDDESeat(name, version, this);
+        }
         );
 
         connect(m_pRegisry, &Registry::seatAnnounced, this, [ = ](quint32 name, quint32 version) {
@@ -332,13 +332,13 @@ void wloutput_interface::StartWork()
             if (m_ddeSeat) {
                 m_ddePointer = m_ddeSeat->createDDePointer(this);
                 connect(m_ddePointer, &DDEPointer::buttonStateChanged, this,
-                    [this] (const QPointF &pos, quint32 button, KWayland::Client::DDEPointer::ButtonState state) {
-                        if (state == DDEPointer::ButtonState::Released) {
-                            Q_EMIT ButtonRelease(button, pos.x(), pos.y());
-                        } else {
-                            Q_EMIT ButtonPress(button, pos.x(), pos.y());
-                        }
+                        [this] (const QPointF &pos, quint32 button, KWayland::Client::DDEPointer::ButtonState state) {
+                    if (state == DDEPointer::ButtonState::Released) {
+                        Q_EMIT ButtonRelease(button, pos.x(), pos.y());
+                    } else {
+                        Q_EMIT ButtonPress(button, pos.x(), pos.y());
                     }
+                }
                 );
                 connect(m_ddePointer, &DDEPointer::motion, this, [this] (const QPointF &pos) {
                     Q_EMIT CursorMove(pos.x(), pos.y());
@@ -350,11 +350,11 @@ void wloutput_interface::StartWork()
 
                 m_ddeTouch = m_ddeSeat->createDDETouch(this);
                 connect(m_ddeTouch, &DDETouch::touchDown, this,
-                    [this] (int32_t kwaylandId, const QPointF &pos) {
-                        m_touchMap.insert(kwaylandId, pos);
-                        // dde-session-daemon 监听此信号
-                        Q_EMIT ButtonPress(kwaylandId, pos.x(), pos.y());
-                    }
+                        [this] (int32_t kwaylandId, const QPointF &pos) {
+                    m_touchMap.insert(kwaylandId, pos);
+                    // dde-session-daemon 监听此信号
+                    Q_EMIT ButtonPress(kwaylandId, pos.x(), pos.y());
+                }
                 );
                 connect(m_ddeTouch, &DDETouch::touchMotion, this, [this] (int32_t kwaylandId, const QPointF &pos) {
                     // 更新滑动位置
@@ -362,13 +362,13 @@ void wloutput_interface::StartWork()
                 });
 
                 connect(m_ddeTouch, &DDETouch::touchUp, this,
-                    [this] (int32_t kwaylandId) {
-                        if (m_touchMap.contains(kwaylandId)) {
-                            QPointF pos = m_touchMap.take(kwaylandId);
-                            Q_EMIT ButtonRelease(kwaylandId, pos.x(), pos.y());
-                            m_touchMap.remove(kwaylandId);
-                        }
+                        [this] (int32_t kwaylandId) {
+                    if (m_touchMap.contains(kwaylandId)) {
+                        QPointF pos = m_touchMap.take(kwaylandId);
+                        Q_EMIT ButtonRelease(kwaylandId, pos.x(), pos.y());
+                        m_touchMap.remove(kwaylandId);
                     }
+                }
                 );
             }
 
@@ -382,20 +382,20 @@ void wloutput_interface::StartWork()
     });
 
     QObject::connect(m_pConnectThread, &ConnectionThread::failed, [ & ] {
-          qDebug() << "connect failed to wayland at socket:" << m_pConnectThread->socketName();
-          m_bConnected = true;
+        qDebug() << "connect failed to wayland at socket:" << m_pConnectThread->socketName();
+        m_bConnected = true;
 
     });
     QObject::connect(m_pConnectThread, &ConnectionThread::connectionDied, [ & ] {
-          qDebug() << "connect failed to wayland at socket:" << m_pConnectThread->socketName();
-          if (m_pRegisry)
-          {
-              m_pRegisry->deleteLater();
-          }
-          if (m_pConf)
-          {
-              m_pConf->deleteLater();
-          }
+        qDebug() << "connect failed to wayland at socket:" << m_pConnectThread->socketName();
+        if (m_pRegisry)
+        {
+            m_pRegisry->deleteLater();
+        }
+        if (m_pConf)
+        {
+            m_pConf->deleteLater();
+        }
 
     });
 
@@ -455,13 +455,13 @@ void wloutput_interface::Apply(QString outputs)
 
                 for (auto m : dev->modes())
                 {
-//                    if (m.size.width() == stOutputInfo.lstModeInfos.at(0).width &&
-//                            m.size.height() == stOutputInfo.lstModeInfos.at(0).height &&
-//                            m.refreshRate == stOutputInfo.lstModeInfos.at(0).refresh_rate)
-//                    {
-                        qDebug() << "setmode id" << stOutputInfo.lstModeInfos.at(0).id;
-                        m_pConf->setMode(dev, stOutputInfo.lstModeInfos.at(0).id);
-//                    }
+                    //                    if (m.size.width() == stOutputInfo.lstModeInfos.at(0).width &&
+                    //                            m.size.height() == stOutputInfo.lstModeInfos.at(0).height &&
+                    //                            m.refreshRate == stOutputInfo.lstModeInfos.at(0).refresh_rate)
+                    //                    {
+                    qDebug() << "setmode id" << stOutputInfo.lstModeInfos.at(0).id;
+                    m_pConf->setMode(dev, stOutputInfo.lstModeInfos.at(0).id);
+                    //                    }
                 }
             }
             m_pConf->setPosition(dev, QPoint(stOutputInfo.x, stOutputInfo.y));
@@ -531,25 +531,34 @@ void wloutput_interface::onDeviceChanged(OutputDeviceV2 *dev)
         QList<OutputInfo> listOutputInfos;
         listOutputInfos.push_back(stOutputInfo);
         QString json = OutputInfo2Json(listOutputInfos);
-//            qDebug() << json;
+        //            qDebug() << json;
         Q_EMIT OutputAdded(json);
-//                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputAdded");
-//                        QList<QVariant> arg;
-//                        message.setArguments(arg);
-//                        QDBusConnection::sessionBus().send(message);
+        //                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputAdded");
+        //                        QList<QVariant> arg;
+        //                        message.setArguments(arg);
+        //                        QDBusConnection::sessionBus().send(message);
     }
     else {
         qDebug() << "OutputDeviceV2::changed";
         OutputInfo stOutputInfo = GetOutputInfo(dev);
         QList<OutputInfo> listOutputInfos;
+        if (devSizeMap.contains(dev)) {
+            QSize size = devSizeMap[dev];
+            for (ModeInfo &mode : stOutputInfo.lstModeInfos) {
+                if (mode.width == size.width() && mode.height == size.height()) {
+                    qInfo() << "found currentModeChanged mode";
+                    mode.flags |= 1;
+                }
+            }
+        }
         listOutputInfos.push_back(stOutputInfo);
         QString json = OutputInfo2Json(listOutputInfos);
         //qDebug() << json;
         Q_EMIT OutputChanged(json);
-//                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputChanged");
-//                        QList<QVariant> arg;
-//                        message.setArguments(arg);
-//                        QDBusConnection::sessionBus().send(message);
+        //                        QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputChanged");
+        //                        QList<QVariant> arg;
+        //                        message.setArguments(arg);
+        //                        QDBusConnection::sessionBus().send(message);
     }
 
 }
@@ -568,19 +577,24 @@ void wloutput_interface::onDeviceRemove(quint32 name, quint32 version) {
         this->onDeviceChanged(dev);
     });
 
+    QObject::connect(dev, &OutputDeviceV2::currentModeChanged, this, [=] (const KWayland::Client::DeviceModeV2 *mode){
+        qInfo() << "currentModeChanged width:" << mode->size().width() << " height:" << mode->size().height();
+        devSizeMap[dev] = mode->size();
+    });
+
     QObject::connect(dev, &OutputDeviceV2::removed, this, [dev, this]{
-       qDebug() << "OutputDeviceV2::removed";
-       OutputInfo stOutputInfo = GetOutputInfo(dev);
-       QList<OutputInfo> listOutputInfos;
-       listOutputInfos.push_back(stOutputInfo);
-       QString json = OutputInfo2Json(listOutputInfos);
-       //qDebug() << json;
-       uuid2OutputDevice.remove(dev->uuid());
-       Q_EMIT OutputRemoved(json);
-//                   QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
-//                   QList<QVariant> arg;
-//                   message.setArguments(arg);
-//                   QDBusConnection::sessionBus().send(message);
+        qDebug() << "OutputDeviceV2::removed";
+        OutputInfo stOutputInfo = GetOutputInfo(dev);
+        QList<OutputInfo> listOutputInfos;
+        listOutputInfos.push_back(stOutputInfo);
+        QString json = OutputInfo2Json(listOutputInfos);
+        //qDebug() << json;
+        uuid2OutputDevice.remove(dev->uuid());
+        Q_EMIT OutputRemoved(json);
+        //                   QDBusMessage message = QDBusMessage::createSignal(PATH, INTERFACE, "OutputRemoved");
+        //                   QList<QVariant> arg;
+        //                   message.setArguments(arg);
+        //                   QDBusConnection::sessionBus().send(message);
     });
 
 }
@@ -614,35 +628,35 @@ void wloutput_interface::createDpmsManagement()
     }
 }
 
- void wloutput_interface::registerDpmsDbus(Output *output)
- {
-     if (Dpms * dpms = m_dpmsManger->getDpms(output)) {
-         wldpms_interface *dpmsinterface = new wldpms_interface(dpms);
-         QString dbus_path;
-         int count = 1;
-         while(1) {
-             dbus_path = DPMS_PATH + "_" + QString::number(count);
-             if (m_wldpms_Manager->dpmsList().contains(dbus_path)) {
-                  ++count;
-             } else {
-                  break;
-             }
-         }
+void wloutput_interface::registerDpmsDbus(Output *output)
+{
+    if (Dpms * dpms = m_dpmsManger->getDpms(output)) {
+        wldpms_interface *dpmsinterface = new wldpms_interface(dpms);
+        QString dbus_path;
+        int count = 1;
+        while(1) {
+            dbus_path = DPMS_PATH + "_" + QString::number(count);
+            if (m_wldpms_Manager->dpmsList().contains(dbus_path)) {
+                ++count;
+            } else {
+                break;
+            }
+        }
 
-         if ( !QDBusConnection::sessionBus().registerObject(dbus_path, dpms)) {
-             qDebug() << "register dpms interface failed";
-         } else {
-             m_wldpms_Manager->dpmsDbusAdd(dbus_path);
-         }
+        if ( !QDBusConnection::sessionBus().registerObject(dbus_path, dpms)) {
+            qDebug() << "register dpms interface failed";
+        } else {
+            m_wldpms_Manager->dpmsDbusAdd(dbus_path);
+        }
 
-         connect(output, &Output::changed, this, [dpmsinterface, output] {
-             dpmsinterface->setDpmsName(output->model());
-         });
+        connect(output, &Output::changed, this, [dpmsinterface, output] {
+            dpmsinterface->setDpmsName(output->model());
+        });
 
-         connect(output, &Output::removed, this, [dpmsinterface, dbus_path, this] {
-             QDBusConnection::sessionBus().unregisterObject(dbus_path);
-             m_wldpms_Manager->dpmsDbusRemove(dbus_path);
-             dpmsinterface->deleteLater();
-         });
-     }
- }
+        connect(output, &Output::removed, this, [dpmsinterface, dbus_path, this] {
+            QDBusConnection::sessionBus().unregisterObject(dbus_path);
+            m_wldpms_Manager->dpmsDbusRemove(dbus_path);
+            dpmsinterface->deleteLater();
+        });
+    }
+}
