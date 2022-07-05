@@ -1,3 +1,9 @@
+dde-wloutput-daemon (2.0.0.1) unstable; urgency=medium
+
+  * update changelog
+
+ -- weizhixiang <weizhixiang@uniontech.com>  Tue, 5 Jul 2022 13:53:19 +0800
+
 dde-wloutput-daemon (2.0.0) unstable; urgency=medium
 
   * release 2.0.0
