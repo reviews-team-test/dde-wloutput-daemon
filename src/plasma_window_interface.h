@@ -101,6 +101,7 @@ public Q_SLOTS:
     void UnsetMinimizedGeometry (Surface *panel);
     quint32 VirtualDesktop () const;
     quint32 WindowId() const;
+    QByteArray uuid() const;
 
 private:
     PlasmaWindow* m_plasmaWindow{nullptr};
