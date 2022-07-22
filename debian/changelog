@@ -1,3 +1,9 @@
+dde-wloutput-daemon (2.0.1) unstable; urgency=medium
+
+  * dde-flow-sprint2
+
+ -- Tan Feng <tanfeng@uniontech.com>  Fri, 22 Jul 2022 17:25:14 +0800
+
 dde-wloutput-daemon (2.0.0.1) unstable; urgency=medium
 
   * update changelog
