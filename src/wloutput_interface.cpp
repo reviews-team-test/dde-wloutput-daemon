@@ -115,8 +115,16 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
         stModeInfo.height = (*oIter)->size().height();
         stModeInfo.refresh_rate = (*oIter)->refreshRate();
         stModeInfo.flags = (*oIter)->preferred() ? 2 : 0;
+
+        // set CurrentMode flag
+        if (stModeInfo.width == dev->geometry().width() && stModeInfo.height == dev->geometry().height()) {
+            qInfo() << "GetOutputInfo mode width:" << stModeInfo.width << "  height:" << stModeInfo.height;
+            stModeInfo.flags |= 1;
+        }
+
         stOutputInfo.lstModeInfos.push_back(stModeInfo);
     }
+
     return stOutputInfo;
 }
 
@@ -542,7 +550,16 @@ void wloutput_interface::onDeviceChanged(OutputDeviceV2 *dev)
         qDebug() << "OutputDeviceV2::changed";
         OutputInfo stOutputInfo = GetOutputInfo(dev);
         QList<OutputInfo> listOutputInfos;
-        if (devSizeMap.contains(dev)) {
+        // 系统启动时没有CurrentModeChanged信号
+        if (!devSizeMap.contains(dev))     {
+            for (ModeInfo &mode : stOutputInfo.lstModeInfos) {
+                if (mode.width == dev->geometry().width() && mode.height == dev->geometry().height()) {
+                    qInfo() << "currentModeChanged mode flag width:" << mode.width << "  height:" << mode.height;
+                    mode.flags |= 1;
+                }
+            }
+        } else {
+        // 系统启动后，OutputChanged信号之前会有CurrentModeChanged信号，根据CurrentModeChanged信号值指定CurrentMode
             QSize size = devSizeMap[dev];
             for (ModeInfo &mode : stOutputInfo.lstModeInfos) {
                 if (mode.width == size.width() && mode.height == size.height()) {
