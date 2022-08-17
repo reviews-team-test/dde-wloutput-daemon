@@ -1,17 +1,20 @@
 #include "wloutput_interface.h"
+#include "plasma_window_interface.h"
+#include "window_manager_interface.h"
+#include "wldpms_manager_interface.h"
+
 #include <QDebug>
 #include <QtDBus/QDBusMessage>
-#include <outputdevicemode_v2.h>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonParseError>
 #include <QDBusInterface>
-#include <event_queue.h>
+
 #include <plasmawindowmanagement.h>
-#include "plasma_window_interface.h"
-#include "window_manager_interface.h"
-#include "wldpms_manager_interface.h"
+#include <event_queue.h>
+#include <outputdevicemode_v2.h>
+#include <primaryoutput_v1.h>
 
 static QMap<QString, OutputDeviceV2*> uuid2OutputDevice;
 
@@ -53,6 +56,7 @@ OutputInfo wloutput_interface::GetOutputInfo(const OutputDeviceV2* dev)
     stOutputInfo.model = dev->model();
     stOutputInfo.manufacturer = dev->manufacturer();
     stOutputInfo.uuid = dev->uuid();
+    stOutputInfo.name = dev->outputName();
     stOutputInfo.edid = dev->edid();
 
     qDebug() << "GetOutputInfo: " << dev->edid().length() << dev->edid().toBase64() << stOutputInfo.manufacturer;
@@ -145,6 +149,7 @@ QString wloutput_interface::OutputInfo2Json(QList<OutputInfo>& listOutputInfos)
         jsonOutputInfo.insert("model", oIterOutputInfo->model);
         jsonOutputInfo.insert("manufacturer", oIterOutputInfo->manufacturer);
         jsonOutputInfo.insert("uuid", oIterOutputInfo->uuid);
+        jsonOutputInfo.insert("name", oIterOutputInfo->name);
         jsonOutputInfo.insert("enabled", oIterOutputInfo->enabled);
         jsonOutputInfo.insert("x", oIterOutputInfo->x);
         jsonOutputInfo.insert("y", oIterOutputInfo->y);
@@ -207,6 +212,7 @@ QList<OutputInfo> wloutput_interface::json2OutputInfo(QString jsonString)
                 stOutputInfo.model = jsonOutputInfo.value("model").toString();
                 stOutputInfo.manufacturer = jsonOutputInfo.value("manufacturer").toString();
                 stOutputInfo.uuid = jsonOutputInfo.value("uuid").toString();
+                stOutputInfo.name = jsonOutputInfo.value("name").toString();
                 stOutputInfo.enabled = jsonOutputInfo.value("enabled").toInt();
                 stOutputInfo.x = jsonOutputInfo.value("x").toInt();
                 stOutputInfo.y = jsonOutputInfo.value("y").toInt();
@@ -297,7 +303,6 @@ void wloutput_interface::createPlasmaWindowManagement(quint32 name, quint32 vers
 
 void wloutput_interface::StartWork()
 {
-
     QObject::connect(m_pConnectThread, &ConnectionThread::connected, this, [ this ] {
         m_eventQueue = new EventQueue(this);
         m_eventQueue->setup(m_pConnectThread);
@@ -307,6 +312,7 @@ void wloutput_interface::StartWork()
         QObject::connect(m_pRegisry, &Registry::plasmaWindowManagementAnnounced, this, &wloutput_interface::createPlasmaWindowManagement);
         QObject::connect(m_pRegisry, &Registry::outputDeviceV2Announced, this, &wloutput_interface::onDeviceRemove);
         QObject::connect(m_pRegisry, &Registry::outputDeviceV2Removed, [](quint32 name) {});
+        QObject::connect(m_pRegisry, &Registry::primaryOutputV1Announced, this, &wloutput_interface::onPrimaryOutputV1Announced);
 
         connect(m_pRegisry, &Registry::ddeSeatAnnounced, this,
                 [ = ](quint32 name, quint32 version) {
@@ -445,6 +451,21 @@ QString wloutput_interface::GetOutput(QString uuid)
         rst = OutputInfo2Json(listOutputInfos);
     }
     return  rst;
+}
+
+void wloutput_interface::setPrimary(const QString &outputName)
+{
+    if (!m_pConf)
+        return;
+
+    for (auto it = uuid2OutputDevice.begin(); it != uuid2OutputDevice.end(); ++it) {
+        auto dev = it.value();
+        if (dev->outputName() == outputName) {
+            m_pConf->setPrimaryOutput(dev);
+            m_pConf->apply();
+            break;
+        }
+    }
 }
 
 void wloutput_interface::Apply(QString outputs)
@@ -643,6 +664,12 @@ void wloutput_interface::createDpmsManagement()
     } else {
         qDebug() << ("Compositor does not provide a DpmsManager");
     }
+}
+
+void wloutput_interface::onPrimaryOutputV1Announced(quint32 name, quint32 version)
+{
+    m_primaryOutput = m_pRegisry->createPrimaryOutputV1(name, version, this);
+    connect(m_primaryOutput, &PrimaryOutputV1::primaryOutputChanged, this, &wloutput_interface::PrimaryOutputChanged);
 }
 
 void wloutput_interface::registerDpmsDbus(Output *output)

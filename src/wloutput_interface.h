@@ -31,6 +31,7 @@
 namespace KWayland {
 namespace  Client{
     class PlasmaWindowModel;
+    class PrimaryOutputV1;
 }
 }
 
@@ -55,6 +56,7 @@ typedef  struct _output_info
     QString model;
     QString manufacturer;
     QString uuid;
+    QString name;
     QByteArray edid;
     int enabled;
     int x;
@@ -89,6 +91,7 @@ signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
+    void PrimaryOutputChanged(const QString &outputName);
     void ButtonPress(quint32 button, quint32 x, quint32 y);
     void ButtonRelease(quint32 button, quint32 x, quint32 y);
     void CursorMove(quint32 x, quint32 y);
@@ -97,15 +100,18 @@ signals:
 public Q_SLOTS:
     QString ListOutput();
     QString GetOutput(QString uuid);
+    void setPrimary(const QString &outputName);
     void Apply(QString outputs);
     void WlSimulateKey(int keycode);
     void setBrightness(QString uuid, const int brightness);
+
 private:
     void onDeviceChanged(OutputDeviceV2 *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
     void createDpmsManagement();
+    void onPrimaryOutputV1Announced(quint32 name, quint32 version);
     void registerDpmsDbus(Output *output);
 
 private:
@@ -114,6 +120,7 @@ private:
     QThread *m_pThread{nullptr};
     Registry *m_pRegisry{nullptr};
     OutputManagementV2 *m_pManager{nullptr};
+    PrimaryOutputV1 *m_primaryOutput{nullptr};
     OutputConfigurationV2 *m_pConf{nullptr};
     EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
