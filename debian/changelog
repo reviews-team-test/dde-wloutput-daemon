@@ -1,3 +1,10 @@
+dde-wloutput-daemon (2.0.2) unstable; urgency=medium
+
+  [ Deepin Packages Builder ]
+  * fix: 修复wayland下主屏数据错误的问题(Bug: 149111)(Influence: 控制中心中设置的主屏数据错误)
+
+ -- baodi <baodi@uniontech.com>  Wed, 19 Oct 2022 11:33:51 +0800
+
 dde-wloutput-daemon (2.0.1) unstable; urgency=medium
 
   * dde-flow-sprint2
