@@ -5,7 +5,6 @@ Maintainer: guonafu <guonafu@uniontech.com>
 Build-Depends:
  debhelper (>= 11),
  libdwayland-dev,
- libkf5wayland-dev,
  pkg-config,
  cmake,
  qtbase5-dev,

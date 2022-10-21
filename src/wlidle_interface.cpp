@@ -2,7 +2,7 @@
 #include <QtDBus/QDBusMessage>
 #include <QDBusInterface>
 
-#include <idle.h>
+#include <DWayland/Client/idle.h>
 
 WlIdleInterface::WlIdleInterface(QObject *parent)
     : QDBusAbstractAdaptor(parent)

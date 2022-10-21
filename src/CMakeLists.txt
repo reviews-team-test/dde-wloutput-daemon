@@ -13,6 +13,7 @@ find_package(Qt5 COMPONENTS
     Core
     Gui
     DBus
+    Widgets
 REQUIRED)
 
 find_package(ECM REQUIRED NO_MODULE)
@@ -22,5 +23,7 @@ find_package(DWayland)
 target_link_libraries(${TARGET_NAME}
     Qt5::Core
     Qt5::DBus
+    Qt5::Widgets
     ${DtkGui_LIBRARIES}
-    Deepin::WaylandClient)
+    DWaylandClient
+)

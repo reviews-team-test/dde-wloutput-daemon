@@ -7,26 +7,28 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 #include <QThread>
-
-#include <outputdevice_v2.h>
-#include <registry.h>
-#include <fakeinput.h>
-#include <connection_thread.h>
-#include <outputmanagement_v2.h>
+#include <QSize>
 #include <QList>
 #include <QTimer>
 #include <QByteArray>
-#include <outputconfiguration_v2.h>
-#include <dpms.h>
-#include <output.h>
-#include <QSize>
+
+#include <DWayland/Client/outputdevice_v2.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/fakeinput.h>
+#include <DWayland/Client/connection_thread.h>
+#include <DWayland/Client/outputmanagement_v2.h>
+#include <DWayland/Client/outputconfiguration_v2.h>
+#include <DWayland/Client/dpms.h>
+#include <DWayland/Client/output.h>
+#include <DWayland/Client/ddeseat.h>
+#include <DWayland/Client/pointer.h>
 
 #include "wlidle_interface.h"
 #include "wldpms_interface.h"
-#include <ddeseat.h>
-#include <pointer.h>
-#include <linux/input.h>
 #include "wldpms_manager_interface.h"
+
+#include <linux/input.h>
+
 
 namespace KWayland {
 namespace  Client{

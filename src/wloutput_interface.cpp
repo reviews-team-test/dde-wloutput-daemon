@@ -11,10 +11,10 @@
 #include <QJsonParseError>
 #include <QDBusInterface>
 
-#include <plasmawindowmanagement.h>
-#include <event_queue.h>
-#include <outputdevicemode_v2.h>
-#include <primaryoutput_v1.h>
+#include <DWayland/Client/plasmawindowmanagement.h>
+#include <DWayland/Client/event_queue.h>
+#include <DWayland/Client/outputdevicemode_v2.h>
+#include <DWayland/Client/primaryoutput_v1.h>
 
 static QMap<QString, OutputDeviceV2*> uuid2OutputDevice;
 

@@ -18,4 +18,4 @@ find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 find_package(DWayland)
 
-target_link_libraries(${TARGET_NAME} Qt5::Core Qt5::DBus Deepin::WaylandClient)
+target_link_libraries(${TARGET_NAME} Qt5::Core Qt5::DBus DWaylandClient)

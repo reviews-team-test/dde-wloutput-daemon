@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
-#include <registry.h>
-#include <dpms.h>
-#include <output.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/dpms.h>
+#include <DWayland/Client/output.h>
 
 using namespace KWayland::Client;
 

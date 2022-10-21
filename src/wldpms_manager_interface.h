@@ -7,8 +7,8 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <registry.h>
-#include <dpms.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/dpms.h>
 
 using namespace KWayland::Client;
 

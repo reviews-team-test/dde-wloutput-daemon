@@ -4,8 +4,9 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusInterface>
-#include "signal_handler.h"
 #include <QFile>
+
+#include "signal_handler.h"
 
 
 int main(int argc, char *argv[])

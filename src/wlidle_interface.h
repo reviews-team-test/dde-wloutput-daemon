@@ -7,8 +7,8 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <registry.h>
-#include <idle.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/idle.h>
 
 using namespace KWayland::Client;
 

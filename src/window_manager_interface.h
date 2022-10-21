@@ -7,7 +7,7 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <plasmawindowmanagement.h>
+#include <DWayland/Client/plasmawindowmanagement.h>
 
 using namespace KWayland::Client;
 
