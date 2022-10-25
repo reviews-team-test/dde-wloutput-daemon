@@ -1,3 +1,9 @@
+dde-wloutput-daemon (2.0.2.2) unstable; urgency=medium
+
+  * dde-flow-sprint3 .
+
+ -- Tan Feng <tanfeng@uniontech.com>  Fri, 21 Oct 2022 15:35:19 +0800
+
 dde-wloutput-daemon (2.0.2) unstable; urgency=medium
 
   [ Deepin Packages Builder ]
