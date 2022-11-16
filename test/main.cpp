@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setApplicationName("wloutput-interface-test");
 
-    QDBusInterface interface("com.deepin.daemon.KWayland", "/com/deepin/daemon/KWayland/Output",
-                             "com.deepin.daemon.KWayland.Output",
+    QDBusInterface interface("org.deepin.dde.KWayland1", "/org/deepin/dde/KWayland1/Output",
+                             "org.deepin.dde.KWayland1.Output",
                              QDBusConnection::sessionBus());
     if(!interface.isValid())
     {

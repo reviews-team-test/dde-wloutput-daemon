@@ -1,2 +1,2 @@
 obj-*-linux-gnu*/src/dde-wloutput-daemon /usr/bin
-misc/com.deepin.daemon.KWayland.service /usr/share/dbus-1/services/
+misc/org.deepin.dde.KWayland1.service /usr/share/dbus-1/services/

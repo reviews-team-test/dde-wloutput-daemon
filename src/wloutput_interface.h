@@ -39,9 +39,9 @@ namespace  Client{
 
 using namespace KWayland::Client;
 
-const QString SERVER = "com.deepin.daemon.KWayland";
-const QString PATH = "/com/deepin/daemon/KWayland/Output";
-const QString INTERFACE = "com.deepin.daemon.KWayland.Output";
+const QString SERVER = "org.deepin.dde.KWayland1";
+const QString PATH = "/org/deepin/dde/KWayland1/Output";
+const QString INTERFACE = "org.deepin.dde.KWayland1.Output";
 
 typedef struct _mode_info
 {
@@ -77,7 +77,7 @@ typedef  struct _output_info
 class wloutput_interface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.Output")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.Output")
 
 public:
     explicit wloutput_interface(QObject *parent=nullptr);

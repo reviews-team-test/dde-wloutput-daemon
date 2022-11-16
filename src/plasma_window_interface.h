@@ -11,12 +11,12 @@
 
 using namespace KWayland::Client;
 
-const QString WINDOW_PATH = "/com/deepin/daemon/KWayland/PlasmaWindow";
+const QString WINDOW_PATH = "/org/deepin/dde/KWayland1/PlasmaWindow";
 
 class PlasmaWindowInterface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.PlasmaWindow")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.PlasmaWindow")
 
 public:
     explicit PlasmaWindowInterface(PlasmaWindow* plasma_window);

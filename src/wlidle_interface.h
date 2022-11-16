@@ -15,7 +15,7 @@ using namespace KWayland::Client;
 class WlIdleInterface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.Idle")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.Idle")
 
 public:
     explicit WlIdleInterface(QObject *parent=nullptr);

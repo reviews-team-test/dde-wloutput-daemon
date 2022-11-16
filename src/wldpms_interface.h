@@ -10,12 +10,12 @@
 
 using namespace KWayland::Client;
 
-const QString DPMS_PATH = "/com/deepin/daemon/KWayland/Dpms";
+const QString DPMS_PATH = "/org/deepin/dde/KWayland1/Dpms";
 
 class wldpms_interface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.Dpms")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.Dpms")
 public:
     explicit wldpms_interface(Dpms *dpms);
     virtual ~wldpms_interface();
