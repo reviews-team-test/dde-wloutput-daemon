@@ -11,16 +11,16 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <plasmawindowmanagement.h>
+#include <DWayland/Client/plasmawindowmanagement.h>
 
 using namespace KWayland::Client;
 
-const QString WINDOW_PATH = "/com/deepin/daemon/KWayland/PlasmaWindow";
+const QString WINDOW_PATH = "/org/deepin/dde/KWayland1/PlasmaWindow";
 
 class PlasmaWindowInterface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.PlasmaWindow")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.PlasmaWindow")
 
 public:
     explicit PlasmaWindowInterface(PlasmaWindow* plasma_window);
@@ -105,6 +105,7 @@ public Q_SLOTS:
     void UnsetMinimizedGeometry (Surface *panel);
     quint32 VirtualDesktop () const;
     quint32 WindowId() const;
+    QByteArray uuid() const;
 
 private:
     PlasmaWindow* m_plasmaWindow{nullptr};

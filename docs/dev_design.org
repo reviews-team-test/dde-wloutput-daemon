@@ -30,15 +30,15 @@
 
 + *Service*
 
-  =com.deepin.daemon.KWayland=
+  =org.deepin.dde.KWayland1=
 
 + *Path*
 
-  =/com/deepin/daemon/KWayland/Output=
+  =/org/deepin/dde/KWayland1/Output=
 
 + *Interface*
 
-  =com.deepin.daemon.KWayland.Output=
+  =org.deepin.dde.KWayland1.Output=
 
 --------
 

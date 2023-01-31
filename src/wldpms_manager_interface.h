@@ -11,17 +11,17 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <registry.h>
-#include <dpms.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/dpms.h>
 
 using namespace KWayland::Client;
 
-const QString DPMS_MANAGER_PATH = "/com/deepin/daemon/KWayland/DpmsManager";
+const QString DPMS_MANAGER_PATH = "/org/deepin/dde/KWayland1/DpmsManager";
 
 class WlDpmsManagerInterface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.DpmsManager")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.DpmsManager")
 
 public:
     explicit WlDpmsManagerInterface(DpmsManager *manager);

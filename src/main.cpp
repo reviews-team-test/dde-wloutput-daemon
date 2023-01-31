@@ -5,18 +5,25 @@
 #include <QGuiApplication>
 #include <QDebug>
 #include <QString>
+
+#include <DLog>
+
 #include "wloutput_interface.h"
 
 const QString VERSION = "1.0.1";
 
+DCORE_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
     QGuiApplication a(argc, argv);
 
-    QGuiApplication::setApplicationName("wloutput-interface");
-    // app version
-    QGuiApplication::setApplicationVersion(VERSION); // app version
+    a.setOrganizationName("deepin");
+    a.setApplicationName("wloutput-interface");
+    a.setApplicationVersion(VERSION); // app version
+
+    DLogManager::registerFileAppender();
+    DLogManager::registerConsoleAppender();
 
     wloutput_interface object(&a);
     Q_UNUSED(object);

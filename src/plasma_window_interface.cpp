@@ -502,3 +502,11 @@ quint32 PlasmaWindowInterface::WindowId() const
     }
     return 0;
 }
+
+QByteArray PlasmaWindowInterface::uuid() const
+{
+    if (m_plasmaWindow != nullptr) {
+        return m_plasmaWindow->uuid();
+    }
+    return QByteArray();
+}

@@ -11,16 +11,16 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 
-#include <plasmawindowmanagement.h>
+#include <DWayland/Client/plasmawindowmanagement.h>
 
 using namespace KWayland::Client;
 
-const QString MANAGER_PATH = "/com/deepin/daemon/KWayland/WindowManager";
+const QString MANAGER_PATH = "/org/deepin/dde/KWayland1/WindowManager";
 
 class PlasmaWindowManagerInterface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.WindowManager")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.WindowManager")
 
 public:
     explicit PlasmaWindowManagerInterface(PlasmaWindowManagement* plasma_window_manager);

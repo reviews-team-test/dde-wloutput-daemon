@@ -11,37 +11,41 @@
 #include <QtDBus/QtDBus>
 #include <QtDBus/QDBusConnection>
 #include <QThread>
-
-#include <outputdevice.h>
-#include <registry.h>
-#include <fakeinput.h>
-#include <connection_thread.h>
-#include <outputmanagement.h>
+#include <QSize>
 #include <QList>
 #include <QTimer>
 #include <QByteArray>
-#include <outputconfiguration.h>
-#include <dpms.h>
-#include <output.h>
+
+#include <DWayland/Client/outputdevice_v2.h>
+#include <DWayland/Client/registry.h>
+#include <DWayland/Client/fakeinput.h>
+#include <DWayland/Client/connection_thread.h>
+#include <DWayland/Client/outputmanagement_v2.h>
+#include <DWayland/Client/outputconfiguration_v2.h>
+#include <DWayland/Client/dpms.h>
+#include <DWayland/Client/output.h>
+#include <DWayland/Client/ddeseat.h>
+#include <DWayland/Client/pointer.h>
 
 #include "wlidle_interface.h"
 #include "wldpms_interface.h"
-#include <ddeseat.h>
-#include <pointer.h>
-#include <linux/input.h>
 #include "wldpms_manager_interface.h"
+
+#include <linux/input.h>
+
 
 namespace KWayland {
 namespace  Client{
     class PlasmaWindowModel;
+    class PrimaryOutputV1;
 }
 }
 
 using namespace KWayland::Client;
 
-const QString SERVER = "com.deepin.daemon.KWayland";
-const QString PATH = "/com/deepin/daemon/KWayland/Output";
-const QString INTERFACE = "com.deepin.daemon.KWayland.Output";
+const QString SERVER = "org.deepin.dde.KWayland1";
+const QString PATH = "/org/deepin/dde/KWayland1/Output";
+const QString INTERFACE = "org.deepin.dde.KWayland1.Output";
 
 typedef struct _mode_info
 {
@@ -58,6 +62,7 @@ typedef  struct _output_info
     QString model;
     QString manufacturer;
     QString uuid;
+    QString name;
     QByteArray edid;
     int enabled;
     int x;
@@ -76,7 +81,7 @@ typedef  struct _output_info
 class wloutput_interface : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.deepin.daemon.KWayland.Output")
+    Q_CLASSINFO("D-Bus Interface", "org.deepin.dde.KWayland1.Output")
 
 public:
     explicit wloutput_interface(QObject *parent=nullptr);
@@ -84,7 +89,7 @@ public:
     bool InitDBus();
     void StartWork();
     QDBusAbstractAdaptor* idleObject() { return m_wlIdleInterface; }
-    static OutputInfo GetOutputInfo(const OutputDevice* dev);
+    static OutputInfo GetOutputInfo(const OutputDeviceV2* dev);
     static QString OutputInfo2Json(QList<OutputInfo>& listOutputInfos);
     static QList<OutputInfo> json2OutputInfo(QString jsonString);
 
@@ -92,6 +97,7 @@ signals:
     void OutputAdded(QString output);
     void OutputRemoved(QString output);
     void OutputChanged(QString output);
+    void PrimaryOutputChanged(const QString &outputName);
     void ButtonPress(quint32 button, quint32 x, quint32 y);
     void ButtonRelease(quint32 button, quint32 x, quint32 y);
     void CursorMove(quint32 x, quint32 y);
@@ -100,17 +106,18 @@ signals:
 public Q_SLOTS:
     QString ListOutput();
     QString GetOutput(QString uuid);
+    void setPrimary(const QString &outputName);
     void Apply(QString outputs);
     void WlSimulateKey(int keycode);
-    void SetBrightness(const QString uuid, const int brightness);
-    void SetColorTemperature(const QString uuid, const int temperature);
+    void setBrightness(QString uuid, const int brightness);
 
 private:
-    void onDeviceChanged(OutputDevice *dev);
+    void onDeviceChanged(OutputDeviceV2 *dev);
     void onDeviceRemove(quint32 name, quint32 version) ;
     void onMangementAnnounced(quint32 name, quint32 version);
     void createPlasmaWindowManagement(quint32 name, quint32 version);
     void createDpmsManagement();
+    void onPrimaryOutputV1Announced(quint32 name, quint32 version);
     void registerDpmsDbus(Output *output);
     void setColorCurvesBrightness(OutputDevice *outputDevice, const float brightness);
     void setColorCurvesTemperature(OutputDevice *outputDevice, const int temperature);
@@ -120,8 +127,9 @@ private:
     ConnectionThread *m_pConnectThread{nullptr};
     QThread *m_pThread{nullptr};
     Registry *m_pRegisry{nullptr};
-    OutputManagement *m_pManager{nullptr};
-    OutputConfiguration *m_pConf{nullptr};
+    OutputManagementV2 *m_pManager{nullptr};
+    PrimaryOutputV1 *m_primaryOutput{nullptr};
+    OutputConfigurationV2 *m_pConf{nullptr};
     EventQueue *m_eventQueue{nullptr};
     bool m_bConnected;
     PlasmaWindowManagement *m_pWindowManager{nullptr};
@@ -136,6 +144,7 @@ private:
     QTimer *m_timer;
     WlDpmsManagerInterface *m_wldpms_Manager{nullptr};
     DpmsManager *m_dpmsManger{nullptr};
+    QMap<OutputDeviceV2 *, QSize> devSizeMap;
 };
 
 #endif // WLOUTPUT_INTERFACE_H
